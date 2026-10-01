@@ -1,0 +1,12 @@
+node_modules/
+.next/
+.venv/
+.DS_Store
+.env*.local
+.pytest_cache/
+
+# 이 기계에서만 쓰는 도구 설정. 개발용 토큰이 적혀 있다.
+.claude/settings.local.json
+
+# 파일 저장소는 개발용 로컬 상태다. 커밋하지 않는다.
+data/local-store.json

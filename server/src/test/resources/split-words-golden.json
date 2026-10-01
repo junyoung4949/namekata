@@ -1,0 +1,505 @@
+{
+  "HTTPSConnection": [
+    "https",
+    "connection"
+  ],
+  "IOError": [
+    "io",
+    "error"
+  ],
+  "OWSHeader": [
+    "ows",
+    "header"
+  ],
+  "XMLHttpRequest": [
+    "xml",
+    "http",
+    "request"
+  ],
+  "a_b_c": [
+    "a",
+    "b",
+    "c"
+  ],
+  "acceptParams": [
+    "accept",
+    "params"
+  ],
+  "addObjectToArray": [
+    "add",
+    "object",
+    "to",
+    "array"
+  ],
+  "add_ctx": [
+    "add",
+    "ctx"
+  ],
+  "app": [
+    "app"
+  ],
+  "atomic_open": [
+    "atomic",
+    "open"
+  ],
+  "auth_handler": [
+    "auth",
+    "handler"
+  ],
+  "auto_reload": [
+    "auto",
+    "reload"
+  ],
+  "beginIdx": [
+    "begin",
+    "idx"
+  ],
+  "buildAccessors": [
+    "build",
+    "accessors"
+  ],
+  "buildURL": [
+    "build",
+    "url"
+  ],
+  "candidate": [
+    "candidate"
+  ],
+  "channel": [
+    "channel"
+  ],
+  "clearables": [
+    "clearables"
+  ],
+  "colonIndex": [
+    "colon",
+    "index"
+  ],
+  "commonPrefix": [
+    "common",
+    "prefix"
+  ],
+  "commonSuffix": [
+    "common",
+    "suffix"
+  ],
+  "componentType": [
+    "component",
+    "type"
+  ],
+  "contains": [
+    "contains"
+  ],
+  "containsAny": [
+    "contains",
+    "any"
+  ],
+  "containsElement": [
+    "contains",
+    "element"
+  ],
+  "containsInstance": [
+    "contains",
+    "instance"
+  ],
+  "containsWhitespace": [
+    "contains",
+    "whitespace"
+  ],
+  "createParentDirs": [
+    "create",
+    "parent",
+    "dirs"
+  ],
+  "create_cookie": [
+    "create",
+    "cookie"
+  ],
+  "create_jinja_environment": [
+    "create",
+    "jinja",
+    "environment"
+  ],
+  "decodeQuotedString": [
+    "decode",
+    "quoted",
+    "string"
+  ],
+  "dictionary": [
+    "dictionary"
+  ],
+  "end": [
+    "end"
+  ],
+  "endIdx": [
+    "end",
+    "idx"
+  ],
+  "extract_cookies_to_jar": [
+    "extract",
+    "cookies",
+    "to",
+    "jar"
+  ],
+  "extract_zipped_paths": [
+    "extract",
+    "zipped",
+    "paths"
+  ],
+  "findFirstMatch": [
+    "find",
+    "first",
+    "match"
+  ],
+  "flashes": [
+    "flashes"
+  ],
+  "generate": [
+    "generate"
+  ],
+  "generator": [
+    "generator"
+  ],
+  "getID": [
+    "get",
+    "id"
+  ],
+  "get_dict": [
+    "get",
+    "dict"
+  ],
+  "get_encoding_from_headers": [
+    "get",
+    "encoding",
+    "from",
+    "headers"
+  ],
+  "get_encodings_from_content": [
+    "get",
+    "encodings",
+    "from",
+    "content"
+  ],
+  "get_flashed_messages": [
+    "get",
+    "flashed",
+    "messages"
+  ],
+  "get_full_url": [
+    "get",
+    "full",
+    "url"
+  ],
+  "get_send_file_max_age": [
+    "get",
+    "send",
+    "file",
+    "max",
+    "age"
+  ],
+  "hasCandidate": [
+    "has",
+    "candidate"
+  ],
+  "hasOwnInPrototypeChain": [
+    "has",
+    "own",
+    "in",
+    "prototype",
+    "chain"
+  ],
+  "hasText": [
+    "has",
+    "text"
+  ],
+  "hashmarkIndex": [
+    "hashmark",
+    "index"
+  ],
+  "header": [
+    "header"
+  ],
+  "hostname": [
+    "hostname"
+  ],
+  "internetSettings": [
+    "internet",
+    "settings"
+  ],
+  "isBuffer": [
+    "is",
+    "buffer"
+  ],
+  "isCompatibleWithThrowsClause": [
+    "is",
+    "compatible",
+    "with",
+    "throws",
+    "clause"
+  ],
+  "isEmpty": [
+    "is",
+    "empty"
+  ],
+  "isEmptyObject": [
+    "is",
+    "empty",
+    "object"
+  ],
+  "isFormData": [
+    "is",
+    "form",
+    "data"
+  ],
+  "isPlainObject": [
+    "is",
+    "plain",
+    "object"
+  ],
+  "isSafeAndFullyMutable": [
+    "is",
+    "safe",
+    "and",
+    "fully",
+    "mutable"
+  ],
+  "iter_lines": [
+    "iter",
+    "lines"
+  ],
+  "len1": [
+    "len1"
+  ],
+  "length": [
+    "length"
+  ],
+  "lenientFormat": [
+    "lenient",
+    "format"
+  ],
+  "longSize": [
+    "long",
+    "size"
+  ],
+  "mapInternal": [
+    "map",
+    "internal"
+  ],
+  "match": [
+    "match"
+  ],
+  "matchHeaderValue": [
+    "match",
+    "header",
+    "value"
+  ],
+  "mergePropertiesIntoMap": [
+    "merge",
+    "properties",
+    "into",
+    "map"
+  ],
+  "morsel_to_cookie": [
+    "morsel",
+    "to",
+    "cookie"
+  ],
+  "move": [
+    "move"
+  ],
+  "newArray": [
+    "new",
+    "array"
+  ],
+  "nullSafeEquals": [
+    "null",
+    "safe",
+    "equals"
+  ],
+  "open_instance_resource": [
+    "open",
+    "instance",
+    "resource"
+  ],
+  "options": [
+    "options"
+  ],
+  "padEnd": [
+    "pad",
+    "end"
+  ],
+  "padStart": [
+    "pad",
+    "start"
+  ],
+  "parent": [
+    "parent"
+  ],
+  "parseParameter": [
+    "parse",
+    "parameter"
+  ],
+  "parseTokens": [
+    "parse",
+    "tokens"
+  ],
+  "parseURLString": [
+    "parse",
+    "url",
+    "string"
+  ],
+  "parsed": [
+    "parsed"
+  ],
+  "placeholderStart": [
+    "placeholder",
+    "start"
+  ],
+  "prepare_auth": [
+    "prepare",
+    "auth"
+  ],
+  "prepare_content_length": [
+    "prepare",
+    "content",
+    "length"
+  ],
+  "props": [
+    "props"
+  ],
+  "proxyOverride": [
+    "proxy",
+    "override"
+  ],
+  "proxy_bypass_registry": [
+    "proxy",
+    "bypass",
+    "registry"
+  ],
+  "query": [
+    "query"
+  ],
+  "queryparse": [
+    "queryparse"
+  ],
+  "raise_for_status": [
+    "raise",
+    "for",
+    "status"
+  ],
+  "raise_routing_exception": [
+    "raise",
+    "routing",
+    "exception"
+  ],
+  "readBytes": [
+    "read",
+    "bytes"
+  ],
+  "readLines": [
+    "read",
+    "lines"
+  ],
+  "register_hook": [
+    "register",
+    "hook"
+  ],
+  "remove_cookie_by_name": [
+    "remove",
+    "cookie",
+    "by",
+    "name"
+  ],
+  "repeat": [
+    "repeat"
+  ],
+  "seen": [
+    "seen"
+  ],
+  "serializeFn": [
+    "serialize",
+    "fn"
+  ],
+  "serializedParams": [
+    "serialized",
+    "params"
+  ],
+  "snake_case_name": [
+    "snake",
+    "case",
+    "name"
+  ],
+  "splitIndex": [
+    "split",
+    "index"
+  ],
+  "start": [
+    "start"
+  ],
+  "strLen": [
+    "str",
+    "len"
+  ],
+  "stream_decode_response_unicode": [
+    "stream",
+    "decode",
+    "response",
+    "unicode"
+  ],
+  "substringMatch": [
+    "substring",
+    "match"
+  ],
+  "targetKey": [
+    "target",
+    "key"
+  ],
+  "templateStart": [
+    "template",
+    "start"
+  ],
+  "test": [
+    "test"
+  ],
+  "toObjectArray": [
+    "to",
+    "object",
+    "array"
+  ],
+  "to_json": [
+    "to",
+    "json"
+  ],
+  "trimAllWhitespace": [
+    "trim",
+    "all",
+    "whitespace"
+  ],
+  "trimLeadingCharacter": [
+    "trim",
+    "leading",
+    "character"
+  ],
+  "trimOWS": [
+    "trim",
+    "ows"
+  ],
+  "trimTrailingCharacter": [
+    "trim",
+    "trailing",
+    "character"
+  ],
+  "update_template_context": [
+    "update",
+    "template",
+    "context"
+  ],
+  "url_auth": [
+    "url",
+    "auth"
+  ],
+  "view_args": [
+    "view",
+    "args"
+  ]
+}

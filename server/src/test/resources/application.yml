@@ -1,0 +1,23 @@
+# 테스트는 별도 DB 를 쓴다. 개발 DB 를 지우면서 돌 수는 없다.
+#
+#   createdb namekata_test
+#
+# Testcontainers 를 쓰지 않는 이유는 이 환경에 Docker 가 없어서다. 로컬에 띄워
+# 둔 Postgres 를 그대로 쓰고, 통합 테스트마다 questions 를 비우고 시작한다.
+spring:
+  datasource:
+    url: ${NAMEKATA_TEST_DB_URL:jdbc:postgresql://localhost:5432/namekata_test}
+    username: ${NAMEKATA_DB_USER:${USER}}
+    password: ${NAMEKATA_DB_PASSWORD:}
+  flyway:
+    # 테스트를 돌릴 때마다 깨끗한 스키마에서 시작한다.
+    clean-disabled: false
+  jpa:
+    hibernate:
+      ddl-auto: validate
+namekata:
+  admin-token: ""
+  allow-pending: true
+logging:
+  level:
+    org.hibernate.SQL: WARN

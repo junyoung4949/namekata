@@ -1,0 +1,14 @@
+# 추출기(tools/extract)를 돌리는 데 필요한 것.
+#
+#   python -m venv .venv && .venv/bin/pip install -r requirements.txt
+#   .venv/bin/pytest tools/extract
+#   .venv/bin/python tools/extract/extract.py --pin-from data/questions.json
+#
+# tree-sitter 문법은 언어마다 따로다. 버전을 고정해 두는 이유는 문법이
+# 바뀌면 잘라내는 범위가 달라지고, 그러면 문제 id 가 밀리기 때문이다.
+tree-sitter==0.26.0
+tree-sitter-java==0.23.5
+tree-sitter-javascript==0.25.0
+tree-sitter-python==0.25.0
+
+pytest==9.1.1

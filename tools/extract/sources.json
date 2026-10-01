@@ -1,0 +1,59 @@
+[
+  {
+    "repo": "spring-projects/spring-framework",
+    "language": "java",
+    "license": "Apache-2.0",
+    "paths": [
+      "spring-core/src/main/java/org/springframework/util/StringUtils.java",
+      "spring-core/src/main/java/org/springframework/util/CollectionUtils.java",
+      "spring-core/src/main/java/org/springframework/util/ObjectUtils.java"
+    ]
+  },
+  {
+    "repo": "google/guava",
+    "language": "java",
+    "license": "Apache-2.0",
+    "paths": [
+      "guava/src/com/google/common/base/Strings.java",
+      "guava/src/com/google/common/io/Files.java"
+    ]
+  },
+  {
+    "repo": "psf/requests",
+    "language": "python",
+    "license": "Apache-2.0",
+    "paths": [
+      "src/requests/utils.py",
+      "src/requests/models.py",
+      "src/requests/cookies.py"
+    ]
+  },
+  {
+    "repo": "pallets/flask",
+    "language": "python",
+    "license": "BSD-3-Clause",
+    "paths": [
+      "src/flask/helpers.py",
+      "src/flask/app.py"
+    ]
+  },
+  {
+    "repo": "axios/axios",
+    "language": "javascript",
+    "license": "MIT",
+    "paths": [
+      "lib/utils.js",
+      "lib/helpers/buildURL.js",
+      "lib/core/AxiosHeaders.js"
+    ]
+  },
+  {
+    "repo": "expressjs/express",
+    "language": "javascript",
+    "license": "MIT",
+    "paths": [
+      "lib/utils.js",
+      "lib/request.js"
+    ]
+  }
+]

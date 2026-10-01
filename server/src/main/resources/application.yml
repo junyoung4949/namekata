@@ -1,0 +1,57 @@
+spring:
+  application:
+    name: namekata-server
+
+  datasource:
+    # 로컬은 그냥 띄워 둔 Postgres 를 쓴다 (Docker 없이).
+    #   createdb namekata
+    # 운영은 환경변수로 덮는다 (Supabase 등).
+    url: ${NAMEKATA_DB_URL:jdbc:postgresql://localhost:5432/namekata}
+    username: ${NAMEKATA_DB_USER:${USER}}
+    password: ${NAMEKATA_DB_PASSWORD:}
+
+  jpa:
+    # 스키마는 Flyway 가 소유한다. JPA 가 손대면 둘이 싸운다.
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        jdbc:
+          # import 가 문제 수백 개를 한 번에 넣는다.
+          batch_size: 100
+
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+
+namekata:
+  # 검수 API 와 import API 를 지키는 토큰. 웹의 NAMEKATA_ADMIN_TOKEN 과 같은 값.
+  # 비어 있으면 로컬에서만 열린다 (운영 프로파일에서는 반드시 채운다).
+  admin-token: ${NAMEKATA_ADMIN_TOKEN:}
+
+  # 검수 전(pending) 문제까지 내보낼지.
+  #
+  # 추출 직후에는 모든 문제가 pending 이라, 끄면 화면이 비어 있다. 개발에서는
+  # 켜 두고 운영에서는 꺼서 승인된 문제만 내보낸다 (아래 prod 프로파일).
+  allow-pending: ${NAMEKATA_ALLOW_PENDING:true}
+
+logging:
+  level:
+    dev.namekata: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  jpa:
+    properties:
+      hibernate:
+        format_sql: false
+namekata:
+  # 운영에서는 승인된 문제만 내보낸다.
+  allow-pending: ${NAMEKATA_ALLOW_PENDING:false}
+logging:
+  level:
+    dev.namekata: INFO

@@ -1,0 +1,333 @@
+@import "tailwindcss";
+
+:root {
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --border: #e5e1da;
+  --text: #1c1a17;
+  --muted: #6b665e;
+  --accent: #b4531f;
+  --accent-soft: #fdf1e7;
+  --match: #1f7a4d;
+  --match-soft: #e6f4ec;
+
+  --code-bg: #f6f4f0;
+
+  /* 가려진 이름 자리. --accent 는 버튼에도 쓰이므로 따로 둔다. */
+  --slot-fill: #f0a868;
+
+  /*
+   * 이름의 역할 표시 (lib/role.ts).
+   *
+   * 색은 둘만 쓴다. 하는 일과 핵심 명사가 이름의 뼈대이고, 나머지는
+   * 농도와 굵기로 가른다. 일곱 가지를 모두 다른 색으로 칠하면 매번 같은
+   * 무늬가 반복돼 눈이 무시한다.
+   *
+   * 초록은 단어 일치 표시가 이미 쓰고 있어서 피했다. 주황과 파랑은 모든
+   * 색각 유형에서 구분되고, 나머지는 색에 기대지 않는다.
+   */
+  --role-action: #a8491a;
+  --role-core: #1a5e9c;
+  --role-chip: #ece9e4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #171614;
+    --surface: #201e1b;
+    --border: #35322d;
+    --text: #edeae4;
+    --muted: #9a938a;
+    --accent: #e08a4f;
+    --accent-soft: #2c2119;
+    --match: #6fd39c;
+    --match-soft: #1c2b23;
+
+    --code-bg: #1a1917;
+    --slot-fill: #ffc08a;
+
+    --role-action: #e8a06a;
+    --role-core: #7ab6ef;
+    --role-chip: #2a2724;
+  }
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-border: var(--border);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-code-bg: var(--code-bg);
+  --color-match: var(--match);
+  --color-match-soft: var(--match-soft);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, "Apple SD Gothic Neo", "Pretendard", sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+code,
+pre,
+.mono {
+  /* IntelliJ 기본 글꼴을 먼저 찾고, 없으면 시스템 고정폭으로 내려간다. */
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/*
+ * 이름의 역할.
+ *
+ * 설명을 붙이지 않는다. 답을 여러 개 늘어놓고 보다 보면 앞쪽에 불이
+ * 켜지는 게 보통이고, 그렇지 않은 이름이 눈에 걸리는 정도면 된다.
+ * 코드 블록 안에서는 쓰지 않는다 — 거기는 에디터 문법 색이 주인이다.
+ */
+.role-verb {
+  color: var(--role-action);
+  font-weight: 600;
+}
+
+/* 판정 접두사는 동사 자리를 대신하는 말이라 같은 색으로 묶는다. */
+.role-prefix {
+  color: var(--role-action);
+}
+
+.role-core {
+  color: var(--role-core);
+  font-weight: 600;
+}
+
+.role-modifier {
+  color: var(--text);
+}
+
+.role-preposition {
+  color: var(--muted);
+}
+
+.role-quantity {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* 도메인이 아니라 구조를 가리키는 말이라 뒤로 물러나게 둔다. */
+.role-technical {
+  color: var(--muted);
+  background: var(--role-chip);
+  border-radius: 3px;
+  padding: 0 0.15em;
+}
+
+/*
+ * 코드 블록. 배경·거터·선언 색은 CodeBlock이 블록마다 인라인 변수로 심는다
+ * (언어마다 다른 에디터 배색을 쓰기 때문).
+ *
+ * 테두리와 둥근 모서리는 바깥 틀(.code-frame)이 쥔다. 위에 파일 탭이
+ * 붙기 때문이다.
+ */
+.code-frame {
+  overflow: hidden;
+}
+
+.code-block {
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--cb-bg-light);
+}
+
+/*
+ * 파일 탭. 어느 클래스·모듈의 메서드인지 코드 위에 붙인다.
+ * 에디터 거터와 같은 색을 써서 코드 블록에 얹힌 탭처럼 보이게 한다.
+ */
+.code-tab {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 13px;
+  background: var(--cb-gutter-bg-light);
+  border-bottom: 1px solid var(--border);
+}
+
+.code-tab-file,
+.code-tab-owner {
+  flex: none;
+  color: var(--text);
+}
+
+/* 자리가 모자라면 디렉터리부터 줄인다. 앞쪽을 자르고 끝을 남긴다. */
+.code-tab-dir {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  direction: rtl;
+  text-align: left;
+  color: var(--cb-gutter-fg-light);
+}
+
+/*
+ * 가려진 이름 자리.
+ *
+ * 폭은 원본 이름의 글자 수만큼(Nch) CodeBlock이 인라인으로 준다. 글자
+ * 하나가 정확히 1ch라서 코드의 가로 정렬이 실제 이름과 같아진다.
+ */
+.slot {
+  display: inline-block;
+  font-weight: 600;
+}
+
+/* 비어 있는 요소라 높이가 0이므로 글자 한 칸 높이를 직접 준다. */
+.slot--hidden {
+  height: 1.05em;
+  vertical-align: -0.2em;
+  background: var(--slot-fill);
+  border-radius: 3px;
+}
+
+/*
+ * 이름을 치는 자리.
+ *
+ * 빈칸이 곧 입력창이다. 비어 있을 때는 원본 이름 길이만큼 그은 주황 밑줄
+ * 위에서 커서가 깜빡이고, 치기 시작하면 답을 공개했을 때(.slot--revealed)와
+ * 같은 모습으로 바뀐다. 코드 글꼴·크기를 그대로 물려받아야 하므로
+ * 브라우저 기본 입력 모양은 전부 걷어낸다.
+ */
+.slot--input {
+  font: inherit;
+  padding: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  box-shadow: inset 0 -2px 0 var(--slot-fill);
+  color: var(--cb-decl-light);
+  caret-color: var(--slot-fill);
+}
+
+.slot--typed {
+  box-shadow: inset 0 -2px 0 var(--cb-decl-light);
+  caret-color: currentColor;
+}
+
+/*
+ * 답을 공개한 뒤. 어디가 빈칸이었는지는 밑줄로 남기고,
+ * 글자는 그 에디터가 함수 선언에 쓰는 색으로 돌려놓는다.
+ *
+ * 밑줄은 border 가 아니라 box-shadow 로 긋는다. 빈칸은 inline-block 이라
+ * border 를 주면 그 줄만 2px 높아지고, 줄 번호 거터가 거기서 벌어진다.
+ */
+.slot--revealed {
+  background: transparent;
+  color: var(--cb-decl-light);
+  box-shadow: inset 0 -2px 0 var(--cb-decl-light);
+  font-weight: 400;
+}
+
+/*
+ * 문법 강조. 토큰은 색을 --shiki-light / --shiki-dark 변수로만 들고 온다
+ * (lib/highlight.ts). 어느 쪽을 쓸지는 여기서 고른다.
+ * 빈칸·줄 번호·괄호·들여쓰기 가이드는 제 색을 따로 쓰므로 제외한다.
+ */
+.code-block span:not(.slot):not(.code-ln):not(.bracket):not(.indent-guide) {
+  color: var(--shiki-light);
+}
+
+/* 괄호 쌍 색칠. 중첩 깊이에 따라 색 세 개를 돌려 쓴다. */
+.bracket-0 {
+  color: var(--cb-br0-light);
+}
+.bracket-1 {
+  color: var(--cb-br1-light);
+}
+.bracket-2 {
+  color: var(--cb-br2-light);
+}
+
+/*
+ * 들여쓰기 가이드. 공백을 품고 있어 너비와 높이가 저절로 잡히고,
+ * 세로선은 box-shadow로 그려 자리를 차지하지 않는다.
+ */
+.indent-guide {
+  display: inline-block;
+  box-shadow: inset 1px 0 0 var(--cb-guide-light);
+}
+
+.code-line {
+  display: block;
+  padding-right: 1rem;
+}
+
+/* 줄 번호. 에디터 거터처럼 가로로 스크롤해도 왼쪽에 붙어 있는다. */
+.code-ln {
+  position: sticky;
+  left: 0;
+  display: inline-block;
+  /* 인라인 width는 숫자 칸만 가리킨다. 여백은 그 바깥에 붙는다. */
+  box-sizing: content-box;
+  padding-left: 0.75rem;
+  padding-right: 1rem;
+  margin-right: 0.75rem;
+  text-align: right;
+  color: var(--cb-gutter-fg-light);
+  background: var(--cb-gutter-bg-light);
+  user-select: none;
+}
+
+/*
+ * 어두운 테마로 넘어가는 자리. 같은 선택자를 덮어써야 하므로
+ * 밝은 쪽 규칙보다 반드시 뒤에 있어야 한다 (미디어 쿼리는 우선순위를
+ * 올려주지 않고, 같은 우선순위끼리는 나중에 쓴 쪽이 이긴다).
+ */
+@media (prefers-color-scheme: dark) {
+  .code-block span:not(.slot):not(.code-ln):not(.bracket):not(.indent-guide) {
+    color: var(--shiki-dark);
+  }
+
+  .bracket-0 {
+    color: var(--cb-br0-dark);
+  }
+  .bracket-1 {
+    color: var(--cb-br1-dark);
+  }
+  .bracket-2 {
+    color: var(--cb-br2-dark);
+  }
+
+  .indent-guide {
+    box-shadow: inset 1px 0 0 var(--cb-guide-dark);
+  }
+
+  .code-block {
+    background: var(--cb-bg-dark);
+  }
+
+  .code-ln {
+    background: var(--cb-gutter-bg-dark);
+    color: var(--cb-gutter-fg-dark);
+  }
+
+  .code-tab {
+    background: var(--cb-gutter-bg-dark);
+  }
+
+  .code-tab-dir {
+    color: var(--cb-gutter-fg-dark);
+  }
+
+  .slot--revealed {
+    color: var(--cb-decl-dark);
+    box-shadow: inset 0 -2px 0 var(--cb-decl-dark);
+  }
+
+  .slot--input {
+    color: var(--cb-decl-dark);
+  }
+
+  .slot--typed {
+    box-shadow: inset 0 -2px 0 var(--cb-decl-dark);
+  }
+}

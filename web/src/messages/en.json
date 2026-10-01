@@ -1,0 +1,126 @@
+{
+  "common": {
+    "appName": "namekata",
+    "tagline": "Practice naming with real open-source code",
+    "play": "Play",
+    "license": "Licenses",
+    "takedown": "Takedown",
+    "admin": "Review",
+    "back": "Back to list",
+    "korean": "한국어",
+    "english": "English"
+  },
+  "language": {
+    "all": "All",
+    "java": "Java",
+    "python": "Python",
+    "javascript": "JavaScript"
+  },
+  "home": {
+    "heading": "Choosing good names takes time but saves more than it takes.",
+    "lede": "『Clean Code』",
+    "listHeading": "{count} questions",
+    "empty": "No questions are playable yet. Approve some in the review screen.",
+    "pendingNotice": "Development mode: unreviewed questions are shown too. Set NAMEKATA_ALLOW_PENDING=0 in production.",
+    "kind": {
+      "method": "Function",
+      "variable": "Variable",
+      "class": "Class"
+    },
+    "matchRate": "{percent}% overlap",
+    "noStats": "No data yet",
+    "filterLanguage": "Language",
+    "filterLevel": "Level",
+    "filterKind": "Type",
+    "filterSort": "Sort",
+    "filterAll": "All",
+    "sort": {
+      "default": "Default",
+      "level-asc": "Easiest first",
+      "level-desc": "Hardest first",
+      "hardest": "Least overlap"
+    },
+    "emptyFiltered": "No questions match these filters.",
+    "clearFilters": "Clear filters",
+    "reset": "Reset",
+    "removeFilter": "Remove this filter"
+  },
+  "play": {
+    "heading": "What was this called?",
+    "instruction": "Read what the code does and type your name straight into the blank. Its width is the length of the original name.",
+    "inputLabel": "Your name",
+    "submit": "Submit",
+    "revealShow": "Show answer",
+    "invalid": "Use a valid identifier (letters, digits, _ or $).",
+    "commentShow": "Show comment",
+    "commentPenalty": "Opening the comment costs points",
+    "commentUsed": "The original comment is back where it was. Points deducted.",
+    "modified": "Modified for this exercise: identifiers masked",
+    "viewOriginal": "View original",
+    "spoiler": "Opening the original reveals the answer",
+    "spoilerConfirm": "This reveals the answer. Open anyway?",
+    "kind": {
+      "method": "Function name",
+      "variable": "Variable name",
+      "class": "Class name"
+    },
+    "exactRate": "{percent}% matched the original",
+    "exactRateHint": "Share of {count} submissions that matched the original exactly.",
+    "backToList": "Back to list"
+  },
+  "result": {
+    "heading": "Result",
+    "yours": "Your name",
+    "original": "Original name",
+    "exact": "Exactly the original name",
+    "partial": "{count} word(s) in common",
+    "none": "No words in common",
+    "revealed": "You revealed the answer. Nothing was submitted for this question.",
+    "wordNote": "There is no single right name. The original is a reference, not an answer key.",
+    "othersHeading": "What others called it",
+    "othersEmpty": "No other answers yet — yours is the first.",
+    "othersCount": "{count}",
+    "yourAnswerTag": "yours",
+    "report": "Report",
+    "reported": "Reported",
+    "next": "Next question",
+    "backToList": "Back to list"
+  },
+  "license": {
+    "heading": "Licenses and attribution",
+    "intro": "namekata builds its questions from permissively licensed open-source code. Only MIT, BSD and Apache 2.0 code is used, and every question shows its repository, file, commit hash, license and copyright notice.",
+    "modifiedHeading": "Modifications",
+    "modifiedBody": "To turn code into a question, identifier names are masked and comments and descriptive strings are removed. The code shown is not the original.",
+    "endorsementHeading": "No endorsement",
+    "endorsementBody": "Project names appear here as attribution only. They do not imply that those projects endorse or sponsor namekata.",
+    "sourcesHeading": "Repositories in use",
+    "questionCount": "{count} questions",
+    "takedownNote": "If you do not want your code hosted here, use the takedown form and it will be removed."
+  },
+  "takedown": {
+    "heading": "Takedown request",
+    "body": "If you are a copyright holder or maintainer and do not want a piece of code hosted here, let us know. Include the question URL or the repository and file path and it will be removed.",
+    "emailLabel": "Contact",
+    "emailNote": "Replace this with a real operational address before launch.",
+    "privacyHeading": "What is not stored",
+    "privacyBody": "Personal data such as commit author emails is never collected or stored."
+  },
+  "admin": {
+    "heading": "Question review",
+    "lede": "Candidates that passed the automatic filters. Approve the ones that work as questions.",
+    "statusPending": "Pending",
+    "statusApproved": "Approved",
+    "statusRejected": "Rejected",
+    "approve": "Approve",
+    "reject": "Reject",
+    "reset": "Reset",
+    "answerLabel": "Original name",
+    "reportsHeading": "Reported answers",
+    "reportsEmpty": "No reports.",
+    "hide": "Hide",
+    "hidden": "Hidden",
+    "storeFile": "Using the file store (development). Set NAMEKATA_API_URL to switch to the server store.",
+    "filterAll": "All",
+    "storeServer": "Using the server store (Spring Boot)."
+  }
+}
