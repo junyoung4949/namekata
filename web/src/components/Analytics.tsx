@@ -29,9 +29,12 @@ export function Analytics() {
           window.dataLayer = window.dataLayer || [];
           function gtag(){dataLayer.push(arguments);}
           gtag('js', new Date());
-          // IP 를 마지막 옥텟까지 저장하지 않게 한다. 방문자 수를 세는 데
-          // 전체 IP 가 필요하지 않다.
-          gtag('config', '${id}', { anonymize_ip: true });
+          // anonymize_ip 를 넘기지 않는다. 그것은 구형 Universal Analytics 의
+          // 설정이고, GA4 는 모르는 이름이라 **사용자 정의 이벤트 파라미터로
+          // 취급해** 모든 요청에 ep.anonymize_ip=true 를 붙여 보낸다 (실제
+          // 네트워크 요청에서 확인했다). GA4 는 IP 를 저장하지 않으므로
+          // 애초에 필요가 없다.
+          gtag('config', '${id}');
         `}
       </Script>
     </>
