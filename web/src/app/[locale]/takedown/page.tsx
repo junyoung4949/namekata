@@ -1,12 +1,12 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
+import { takedownContact } from "@/lib/contact";
 
 export default async function TakedownPage({ params }: { params: Promise<{ locale: string }> }) {
   const { locale } = await params;
   setRequestLocale(locale);
   const t = await getTranslations("takedown");
 
-  // 배포 전에 실제 운영 주소로 바꿀 것. 환경 변수로 빼 두었다.
-  const contact = process.env.NEXT_PUBLIC_TAKEDOWN_CONTACT ?? "takedown@example.invalid";
+  const contact = takedownContact();
 
   return (
     <article className="space-y-8">
@@ -20,9 +20,6 @@ export default async function TakedownPage({ params }: { params: Promise<{ local
         <a href={`mailto:${contact}`} className="mono underline underline-offset-4">
           {contact}
         </a>
-        {!process.env.NEXT_PUBLIC_TAKEDOWN_CONTACT && (
-          <p className="text-xs text-accent pt-1">{t("emailNote")}</p>
-        )}
       </section>
 
       <section className="space-y-1">

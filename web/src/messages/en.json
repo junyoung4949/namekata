@@ -101,7 +101,6 @@
     "heading": "Takedown request",
     "body": "If you are a copyright holder or maintainer and do not want a piece of code hosted here, let us know. Include the question URL or the repository and file path and it will be removed.",
     "emailLabel": "Contact",
-    "emailNote": "Replace this with a real operational address before launch.",
     "privacyHeading": "What is not stored",
     "privacyBody": "Personal data such as commit author emails is never collected or stored."
   },
