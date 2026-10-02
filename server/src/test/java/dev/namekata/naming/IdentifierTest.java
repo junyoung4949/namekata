@@ -3,42 +3,52 @@ package dev.namekata.naming;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import java.io.InputStream;
-import java.util.List;
-import java.util.Map;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import tools.jackson.core.type.TypeReference;
-import tools.jackson.databind.ObjectMapper;
 
+/**
+ * 단어 쪼개기와 채점의 규칙.
+ *
+ * <p>전에는 여기에 추출기(Python)의 {@code split_words} 가 뽑아 준 이름 119개를
+ * 담은 골든 파일과, 그것과 글자까지 같은지 보는 테스트가 있었다. 지웠다.
+ *
+ * <p>두 쪼개기는 **같아야 하는 계약이 아니다.** Java 의 것은 채점에 쓰이고 —
+ * 제출한 이름은 실행 중에 들어오므로 미리 쪼갤 수 없어서 여기 있어야 한다 —
+ * Python 의 것은 누출 변형을 만들고 난이도를 가늠하는 내부 어림짐작이다. 어긋나도
+ * 채점은 양쪽(정답·제출)을 같은 자로 재므로 결과가 틀리지 않는다.
+ *
+ * <p>게다가 골든 파일은 "옛날에 Python 이 뭐라고 했는지"의 사진이라, Python 을
+ * 고치고 다시 뽑지 않으면 낡은 값에 대해 통과했다. 지키는 것이 계약이 아닌데
+ * 지키는 방법마저 사람의 기억에 달려 있던 장치다.
+ *
+ * <p>골든 파일에만 있던 경계 사례는 아래 테스트에 직접 적어 두었다. 파일을 읽지
+ * 않으니 무엇을 기대하는지 읽는 자리에서 바로 보인다.
+ */
 class IdentifierTest {
-
-    @Test
-    @DisplayName("단어 쪼개기가 추출기(Python)와 글자 하나까지 같다")
-    void 단어_쪼개기가_추출기와_같다() throws Exception {
-        // split-words-golden.json 은 tools/extract 의 split_words 가 직접 뽑은 값이다.
-        //
-        //   .venv/bin/python -c "import sys; sys.path.insert(0,'tools/extract'); ..."
-        //
-        // 규칙이 Python·TypeScript·Java 세 곳에 있어서, 어긋나면 화면에 보이는
-        // 겹침과 저장되는 겹침이 달라진다. 이 테스트가 그걸 잡는다.
-        Map<String, List<String>> golden = readGolden();
-        assertThat(golden).hasSizeGreaterThan(100);
-
-        golden.forEach((name, expected) ->
-                assertThat(Identifier.of(name).words())
-                        .as("%s 를 쪼갠 결과", name)
-                        .isEqualTo(expected));
-    }
 
     @Test
     @DisplayName("연속 대문자 약어는 한 단어로 묶는다")
     void 약어는_한_단어다() {
         assertThat(Identifier.of("buildURL").words()).containsExactly("build", "url");
         assertThat(Identifier.of("trimOWS").words()).containsExactly("trim", "ows");
+        assertThat(Identifier.of("getID").words()).containsExactly("get", "id");
+        // 약어가 이름 앞에 올 때도 묶는다.
+        assertThat(Identifier.of("IOError").words()).containsExactly("io", "error");
+        assertThat(Identifier.of("OWSHeader").words()).containsExactly("ows", "header");
         // 약어 뒤에 단어가 붙으면 마지막 대문자는 그 단어 것이다.
         assertThat(Identifier.of("HTTPSConnection").words()).containsExactly("https", "connection");
         assertThat(Identifier.of("parseURLString").words()).containsExactly("parse", "url", "string");
+        // 약어가 둘 연달아 오는 경우.
+        assertThat(Identifier.of("XMLHttpRequest").words()).containsExactly("xml", "http", "request");
+    }
+
+    @Test
+    @DisplayName("밑줄은 단어 경계다")
+    void 밑줄은_단어_경계다() {
+        assertThat(Identifier.of("to_json").words()).containsExactly("to", "json");
+        assertThat(Identifier.of("snake_case_name").words()).containsExactly("snake", "case", "name");
+        // 한 글자씩만 있어도 각각 단어다.
+        assertThat(Identifier.of("a_b_c").words()).containsExactly("a", "b", "c");
     }
 
     @Test
@@ -121,12 +131,5 @@ class IdentifierTest {
 
         assertThat(match.exact()).isTrue();
         assertThat(match.partial()).isTrue();
-    }
-
-    private Map<String, List<String>> readGolden() throws Exception {
-        try (InputStream in = getClass().getResourceAsStream("/split-words-golden.json")) {
-            assertThat(in).as("split-words-golden.json 이 테스트 자원에 있어야 한다").isNotNull();
-            return new ObjectMapper().readValue(in, new TypeReference<Map<String, List<String>>>() {});
-        }
     }
 }

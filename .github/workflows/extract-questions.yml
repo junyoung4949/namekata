@@ -56,9 +56,9 @@ jobs:
     timeout-minutes: 20
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v7
         with:
           python-version: "3.13"
           cache: pip
@@ -143,7 +143,7 @@ jobs:
             --data-binary @questions.json > report.json
           cat report.json
 
-      - name: 내려간 문제 확인
+      - name: 반영 결과 확인
         if: ${{ inputs.dry_run != true }}
         env:
           ALLOW_RETIRE: ${{ inputs.allow_retire }}
@@ -153,6 +153,7 @@ jobs:
 
           report = json.load(open("report.json"))
           summary = pathlib.Path(os.environ["GITHUB_STEP_SUMMARY"])
+          rejected = report.get("rejected") or []
           lines = [
               "## 반영 결과",
               "",
@@ -162,7 +163,18 @@ jobs:
               f"| 갱신 | {report['updated']} |",
               f"| 내림 | {report['retired']} |",
               f"| 되살림 | {report['revived']} |",
+              f"| 거부 | {len(rejected)} |",
           ]
+
+          if rejected:
+              lines += ["", "### 답이 보여서 받지 않은 문제", ""]
+              lines += [f"- `{row['id']}` — {row['reason']}" for row in rejected]
+              lines += [
+                  "",
+                  "서버가 자기 구현으로 확인했더니 가린 답이 코드에 그대로 남아 있었다 "
+                  "(naming.AnswerLeak). 추출기의 _name_variants 를 봐야 한다. "
+                  "이미 들어 있던 판은 그대로 살아 있으므로 사이트는 멀쩡하다.",
+              ]
 
           retired = report["retired"]
           if retired:
@@ -176,6 +188,12 @@ jobs:
               ]
           summary.write_text(summary.read_text() + "\n".join(lines) + "\n")
 
+          # 답이 새는 것은 봐줄 수 있는 경우가 없다. allow_retire 같은 우회가 없다.
+          if rejected:
+              print(f"::error::문제 {len(rejected)}개가 답이 보여서 거부됐습니다. "
+                    "추출기의 가리기에 구멍이 있습니다.")
+              sys.exit(1)
+
           if retired and os.environ.get("ALLOW_RETIRE") != "true":
               print(f"::error::문제 {retired}개가 내려갔습니다. "
                     "의도한 것이면 allow_retire 를 켜고 다시 돌리세요.")
@@ -184,7 +202,7 @@ jobs:
 
       - name: 결과 파일 보관
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: questions
           # 커밋하지 않는다. DB 가 원본이고, 이 파일은 그 과정의 중간 산출물이다.

@@ -8,5 +8,9 @@ node_modules/
 # 이 기계에서만 쓰는 도구 설정. 개발용 토큰이 적혀 있다.
 .claude/settings.local.json
 
-# 파일 저장소는 개발용 로컬 상태다. 커밋하지 않는다.
-data/local-store.json
+# 추출기의 산출물. 원본은 DB 이고 이 파일은 중간 결과물이라 커밋하지 않는다.
+data/questions.json
+
+# 파이썬 컴파일 산출물.
+__pycache__/
+*.pyc

@@ -102,6 +102,10 @@ public class QuestionAdminController {
             // 있던 제출 기록은 더 이상 풀 수 없는 문제를 가리킨다.
             log.warn("내려간 문제 {}개: {}", report.retired(), report.retiredIds());
         }
+        if (!report.rejected().isEmpty()) {
+            // 추출기의 가리기가 샜다. 추출기 쪽 _name_variants 를 봐야 한다.
+            log.error("답이 보여서 받지 않은 문제 {}개: {}", report.rejected().size(), report.rejected());
+        }
         return report;
     }
 }

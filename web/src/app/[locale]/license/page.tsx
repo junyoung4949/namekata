@@ -1,5 +1,6 @@
 import { getTranslations, setRequestLocale } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
+import { requireAttribution } from "@/lib/attribution";
 import { listAll } from "@/lib/questions";
 
 export default async function LicensePage({ params }: { params: Promise<{ locale: string }> }) {
@@ -15,16 +16,17 @@ export default async function LicensePage({ params }: { params: Promise<{ locale
     { repo: string; repoUrl: string; license: string; copyright: string | null; count: number }
   >();
   for (const question of questions) {
-    const source = question.source;
+    // 이 페이지가 바로 라이선스 고지다. 칸이 빠지면 조용히 넘어가지 않는다.
+    const source = requireAttribution(question.source);
     const entry = repos.get(source.repo);
     if (entry) {
       entry.count += 1;
     } else {
       repos.set(source.repo, {
         repo: source.repo,
-        repoUrl: source.repo_url,
+        repoUrl: source.repoUrl,
         license: source.license,
-        copyright: source.copyright_holder,
+        copyright: source.copyrightHolder,
         count: 1,
       });
     }

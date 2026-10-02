@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { requireAttribution } from "@/lib/attribution";
 import type { QuestionSource } from "@/lib/types";
 
 /**
@@ -14,18 +15,20 @@ import type { QuestionSource } from "@/lib/types";
  * 한 번 확인을 받는다 (열린 질문: 막을지 허용하고 기록만 할지).
  */
 export function Attribution({
-  source,
+  source: raw,
   onRevealAttempt,
 }: {
   source: QuestionSource;
   onRevealAttempt?: () => void;
 }) {
   const t = useTranslations("play");
+  // 표기할 칸이 빠졌으면 코드를 보여 주지 않는다 (lib/attribution.ts 참고).
+  const source = requireAttribution(raw);
 
   return (
     <aside className="border-t border-border pt-3 text-xs text-muted break-all">
       <a
-        href={source.repo_url}
+        href={source.repoUrl}
         target="_blank"
         rel="noreferrer noopener"
         className="underline underline-offset-4 hover:text-text"
@@ -34,11 +37,11 @@ export function Attribution({
       </a>
       {" · "}
       <span className="mono">
-        {source.file_path}@{source.commit_hash.slice(0, 7)}
+        {source.filePath}@{source.commitHash.slice(0, 7)}
       </span>
       {" · "}
       {source.license}
-      {source.copyright_holder ? ` · ${source.copyright_holder}` : ""}
+      {source.copyrightHolder ? ` · ${source.copyrightHolder}` : ""}
       {" · "}
       {t("modified")}
       {" · "}

@@ -1,19 +1,20 @@
-import { promises as fs } from "node:fs";
-import path from "node:path";
-import { api, isUsingServer } from "./api";
-import { findInFile } from "./questions-file";
-import { matchWords } from "./scoring";
+import { api } from "./api";
 import type { OtherAnswer, QuestionStats, ReviewStatus, SubmissionResult } from "./types";
 
 /**
- * 제출·신고·검수 기록을 다루는 창구.
+ * 제출·신고·검수 기록을 다루는 창구. Spring Boot 서버를 부른다.
  *
- * 구현체가 둘이다.
+ * 전에는 구현체가 둘이었다 — 이 HttpStore 와, 파일 한 개에 쓰는 FileStore.
+ * 서버를 안 띄우고 화면만 만지는 길이었는데 지웠다. 이유는 셋이다.
  *
- * - {@link HttpStore} — Spring Boot 서버를 부른다. NAMEKATA_API_URL 이 있으면 이쪽
- * - {@link FileStore} — 파일 하나에 쓴다. 서버를 안 띄우고 화면만 만질 때 쓴다
+ * - 채점 규칙(단어 쪼개기와 겹침 세기)이 TypeScript 에 한 벌 더 있어야 했다.
+ *   같은 규칙이 Python·Java·TS 세 곳에 있었고, 그중 TS 것은 파일 모드 전용이라
+ *   어긋나도 아무도 몰랐다
+ * - 등급 규칙(표본 기준과 경계 다섯 개)도 같은 이유로 한 벌 더 있었다
+ * - 어차피 Postgres 와 서버를 띄워 두고 개발하게 되어 쓰이지 않았다
  *
- * 화면 코드는 둘을 구별하지 않는다. 바뀌는 건 getStore() 가 무엇을 돌려주느냐뿐이다.
+ * 인터페이스를 남겨 둔 것은 구현을 갈아끼울 자리로서다. 화면 코드는 fetch 를
+ * 직접 하지 않고 이 창구만 보므로, 나중에 저장소가 바뀌어도 여기만 바뀐다.
  */
 
 export type Report = {
@@ -26,9 +27,9 @@ export interface Store {
   /**
    * 답을 내고 채점 결과를 받는다.
    *
-   * 채점 결과를 인자로 받지 않는다. 서버가 채점하기로 했기 때문이다 —
-   * 집계가 난이도가 되고 난이도가 목록 정렬에 쓰이니, 보내온 값을 믿으면
-   * 아무나 등급을 흔들 수 있다. 파일 저장소도 같은 규칙으로 제가 채점한다.
+   * 채점 결과를 인자로 받지 않는다. 서버가 채점하기 때문이다 — 집계가
+   * 난이도가 되고 난이도가 목록 정렬에 쓰이니, 보내온 값을 믿으면 아무나
+   * 등급을 흔들 수 있다.
    */
   submit(questionId: string, name: string): Promise<SubmissionResult>;
   getAnswers(questionId: string): Promise<OtherAnswer[]>;
@@ -41,9 +42,7 @@ export interface Store {
   hideAnswer(questionId: string, name: string): Promise<void>;
 }
 
-// ------------------------------------------------------------- 서버 저장소
-
-/** Spring Boot 서버를 부른다. 엔드포인트는 server/src/main/java/dev/namekata/api 참고. */
+/** 엔드포인트는 server/src/main/java/dev/namekata/api 참고. */
 class HttpStore implements Store {
   submit(questionId: string, name: string): Promise<SubmissionResult> {
     return api<SubmissionResult>("/submissions", {
@@ -99,141 +98,9 @@ class HttpStore implements Store {
   }
 }
 
-// ------------------------------------------------------------- 파일 저장소
-
-type Grade = { exact: boolean; partial: boolean };
-
-type FileShape = {
-  submissions: { questionId: string; name: string; at: string; grade?: Grade }[];
-  hidden: { questionId: string; name: string }[];
-  reviews: Record<string, ReviewStatus>;
-  reports: Report[];
-};
-
-const EMPTY: FileShape = { submissions: [], hidden: [], reviews: {}, reports: [] };
-
-/**
- * 파일 한 개에 쓴다. 개발용이다.
- *
- * 여러 프로세스가 동시에 쓰면 덮어쓰기가 난다. 서버를 안 띄우고 화면만
- * 고칠 때 쓰라고 남겨 둔 것이지, 운영에 쓰라고 있는 게 아니다.
- */
-class FileStore implements Store {
-  private file = path.join(process.cwd(), "..", "data", "local-store.json");
-  /** 읽기-수정-쓰기가 겹치지 않도록 직렬화한다. */
-  private queue: Promise<unknown> = Promise.resolve();
-
-  private async read(): Promise<FileShape> {
-    try {
-      const raw = await fs.readFile(this.file, "utf8");
-      return { ...EMPTY, ...(JSON.parse(raw) as Partial<FileShape>) };
-    } catch {
-      return structuredClone(EMPTY);
-    }
-  }
-
-  private write<T>(mutate: (data: FileShape) => T): Promise<T> {
-    const next = this.queue.then(async () => {
-      const data = await this.read();
-      const result = mutate(data);
-      await fs.mkdir(path.dirname(this.file), { recursive: true });
-      await fs.writeFile(this.file, JSON.stringify(data, null, 2));
-      return result;
-    });
-    this.queue = next.catch(() => undefined);
-    return next;
-  }
-
-  async submit(questionId: string, name: string): Promise<SubmissionResult> {
-    const question = await findInFile(questionId);
-    if (!question) throw new Error(`없는 문제: ${questionId}`);
-
-    const { submittedWords, answerWords, matchedWords, exact } = matchWords(name, question.answer);
-    const grade = { exact, partial: matchedWords.length > 0 };
-
-    await this.write((data) => {
-      data.submissions.push({ questionId, name, at: new Date().toISOString(), grade });
-    });
-
-    return {
-      answer: question.answer,
-      answerWords,
-      submittedWords,
-      matchedWords,
-      exact,
-      docstring: question.docstring,
-      others: await this.getAnswers(questionId),
-    };
-  }
-
-  async getStats(): Promise<Record<string, QuestionStats>> {
-    const data = await this.read();
-    const stats: Record<string, QuestionStats> = {};
-    for (const row of data.submissions) {
-      // 채점 결과가 붙기 전에 쌓인 제출은 총계에만 넣는다. 비율을 0으로
-      // 세면 옛 문제들이 실제보다 어려워 보인다.
-      if (!row.grade) continue;
-      const entry = (stats[row.questionId] ??= { total: 0, partial: 0, exact: 0 });
-      entry.total += 1;
-      if (row.grade.partial) entry.partial += 1;
-      if (row.grade.exact) entry.exact += 1;
-    }
-    return stats;
-  }
-
-  async getAnswers(questionId: string): Promise<OtherAnswer[]> {
-    const data = await this.read();
-    const hidden = new Set(
-      data.hidden.filter((h) => h.questionId === questionId).map((h) => h.name),
-    );
-    const counts = new Map<string, number>();
-    for (const row of data.submissions) {
-      if (row.questionId !== questionId || hidden.has(row.name)) continue;
-      counts.set(row.name, (counts.get(row.name) ?? 0) + 1);
-    }
-    return [...counts.entries()]
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-  }
-
-  async report(questionId: string, name: string) {
-    await this.write((data) => {
-      data.reports.push({ questionId, name, at: new Date().toISOString() });
-    });
-  }
-
-  async listReports() {
-    return (await this.read()).reports;
-  }
-
-  async getReviews() {
-    return (await this.read()).reviews;
-  }
-
-  async setReview(questionId: string, status: ReviewStatus) {
-    await this.write((data) => {
-      data.reviews[questionId] = status;
-    });
-  }
-
-  async hideAnswer(questionId: string, name: string) {
-    await this.write((data) => {
-      if (!data.hidden.some((h) => h.questionId === questionId && h.name === name)) {
-        data.hidden.push({ questionId, name });
-      }
-    });
-  }
-}
-
 let cached: Store | null = null;
 
 export function getStore(): Store {
-  if (cached) return cached;
-  cached = isUsingServer() ? new HttpStore() : new FileStore();
+  cached ??= new HttpStore();
   return cached;
-}
-
-/** 지금 어느 저장소를 쓰는지. 검수 화면이 안내 문구를 고를 때 쓴다. */
-export function storeKind(): "server" | "file" {
-  return isUsingServer() ? "server" : "file";
 }

@@ -119,8 +119,6 @@
     "reportsEmpty": "신고가 없습니다.",
     "hide": "숨기기",
     "hidden": "숨김 처리했습니다",
-    "storeFile": "파일 저장소를 쓰는 중입니다 (개발용). NAMEKATA_API_URL 을 넣으면 서버 저장소로 바뀝니다.",
-    "filterAll": "전체",
-    "storeServer": "서버 저장소(Spring Boot)를 쓰는 중입니다."
+    "filterAll": "전체"
   }
 }

@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { CodeBlock } from "./CodeBlock";
-import type { Question, ReviewStatus } from "@/lib/types";
+import type { ReviewRow, ReviewStatus } from "@/lib/types";
 import type { Highlighted } from "@/lib/highlight";
 import type { Report } from "@/lib/store";
 
@@ -14,13 +14,10 @@ export function AdminBoard({
   questions,
   highlighted,
   reports,
-  store,
 }: {
-  questions: Question[];
+  questions: ReviewRow[];
   highlighted: Record<string, Highlighted>;
   reports: Report[];
-  /** 지금 어느 저장소를 쓰는지. 안내 문구만 달라진다. */
-  store: "server" | "file";
 }) {
   const t = useTranslations("admin");
   const tl = useTranslations("language");
@@ -76,7 +73,6 @@ export function AdminBoard({
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">{t("heading")}</h1>
         <p className="text-muted max-w-2xl">{t("lede")}</p>
-        <p className="text-xs text-muted">{store === "server" ? t("storeServer") : t("storeFile")}</p>
         {error && <p className="text-sm text-accent">{error}</p>}
       </header>
 
@@ -117,7 +113,7 @@ export function AdminBoard({
                 rel="noreferrer noopener"
                 className="underline underline-offset-4"
               >
-                {question.source.file_path.split("/").pop()}
+                {question.source.filePath.split("/").pop()}
               </a>
             </div>
 
@@ -128,7 +124,7 @@ export function AdminBoard({
 
             <details>
               <summary className="cursor-pointer text-sm text-muted">
-                {question.masked_code.split("\n").length} lines
+                {question.maskedCode.split("\n").length} lines
               </summary>
               <div className="pt-2">
                 {highlighted[question.id] && (

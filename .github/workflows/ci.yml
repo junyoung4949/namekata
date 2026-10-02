@@ -1,0 +1,118 @@
+name: 검사
+
+# push 할 때마다 세 덩어리를 각각 검사한다.
+#
+# 잡을 셋으로 나눈 이유는 병렬로 돌고, 깨졌을 때 어디가 깨졌는지 이름으로
+# 바로 보이기 때문이다. 서로 의존하지 않는다 — 추출기·서버·웹은 각자의
+# 테스트로 자기를 지키고, 셋 사이의 결합은 의도적으로 얇게 두었다
+# (README 의 "한 곳에서만" 참고).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# 같은 브랜치에 연달아 밀어넣으면 앞의 것은 의미가 없다. 취소한다.
+# (문제 추출 워크플로와 달리 여기서는 중간에 끊겨도 잃는 것이 없다.)
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  추출기:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+
+      - run: pip install -r requirements.txt
+
+      # 가리기가 새면 답이 보이는 문제가 만들어진다. 여기가 그 안전망이다.
+      - name: 테스트
+        run: pytest tools/extract -q
+
+  서버:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    # 통합 테스트가 진짜 Postgres 를 쓴다. Flyway 마이그레이션이 실제로 돌고,
+    # text[] · on conflict · count(*) filter 같은 Postgres 전용 문법을 쓰므로
+    # H2 로 바꿔치기할 수 없다.
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: namekata_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-java@v6
+        with:
+          java-version: "21"
+          distribution: temurin
+          cache: gradle
+
+      - name: 테스트
+        working-directory: server
+        env:
+          NAMEKATA_TEST_DB_URL: jdbc:postgresql://localhost:5432/namekata_test
+          NAMEKATA_DB_USER: postgres
+          NAMEKATA_DB_PASSWORD: postgres
+        run: ./gradlew test --console=plain
+
+      - name: 테스트 결과 보관
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: server-test-results
+          path: server/build/reports/tests/test
+          retention-days: 7
+          if-no-files-found: ignore
+
+  웹:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - run: npm ci
+        working-directory: web
+
+      # 웹의 타입은 서버의 레코드를 손으로 보고 적은 것이다 (lib/types.ts).
+      # 컴파일러가 경계를 넘어 확인해 주지는 못하지만, 이쪽 안에서 어긋난 것은 잡는다.
+      - name: 타입 검사
+        working-directory: web
+        run: npx tsc --noEmit
+
+      - name: 린트
+        working-directory: web
+        run: npx eslint src
+
+      - name: 빌드
+        working-directory: web
+        # 서버 주소는 실행할 때 쓰인다. 빌드에서는 값이 있기만 하면 된다 —
+        # 문제를 읽는 페이지는 전부 요청 시점에 그려지므로 여기서 호출이 나가지 않는다.
+        env:
+          NAMEKATA_API_URL: http://localhost:8080
+        run: npx next build

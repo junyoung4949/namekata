@@ -119,8 +119,6 @@
     "reportsEmpty": "No reports.",
     "hide": "Hide",
     "hidden": "Hidden",
-    "storeFile": "Using the file store (development). Set NAMEKATA_API_URL to switch to the server store.",
-    "filterAll": "All",
-    "storeServer": "Using the server store (Spring Boot)."
+    "filterAll": "All"
   }
 }

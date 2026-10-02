@@ -425,7 +425,20 @@ def _name_variants(name: str) -> list[str]:
 
 
 def split_words(name: str) -> list[str]:
-    """camelCase·snake_case를 단어로 쪼갠다. 채점의 단어 일치 표시와 같은 규칙."""
+    """camelCase·snake_case를 단어로 쪼갠다. 추출기 내부에서만 쓴다.
+
+    쓰는 곳은 셋이다. 누출 변형 만들기(_name_variants), 주석이 답을 적었는지
+    보기(_doc_spells_answer), 난이도 가늠하기(estimate_level).
+
+    서버에도 같은 일을 하는 코드가 있지만(naming.Identifier) **맞출 필요가 없다.**
+    그쪽은 채점에 쓰여서 틀리면 맞힌 답이 틀렸다고 나오는 계약이고, 이쪽은
+    걸러낼 후보를 고르는 어림짐작이다. 여기가 어긋나면 누출을 놓치거나 난이도가
+    한 칸 움직일 뿐 답이 틀리게 채점되지는 않는다.
+
+    (전에는 '채점과 같은 규칙'이라 적혀 있었고, 그걸 지키려고 서버 테스트가
+    이 함수의 출력을 담은 골든 파일을 들고 있었다. 지킬 이유가 없는 계약이라
+    둘 다 지웠다.)
+    """
     parts = re.split(r"[^A-Za-z0-9]+", name)
     words: list[str] = []
     for part in parts:
@@ -742,7 +755,10 @@ def build_questions(
                 "language": language,
                 "kind": target.kind,
                 "answer": target.name,
-                "answer_words": split_words(target.name),
+                # answer_words 를 보내지 않는다. 서버가 answer 를 받아 제 규칙으로
+                # 쪼갠다 (naming.Identifier). 채점은 정답과 제출을 같은 자로 재야
+                # 하고, 제출은 실행 중에 들어오니 서버가 쪼갤 수밖에 없다. 여기서
+                # 쪼갠 것을 함께 보내면 자가 두 개가 되어 어긋날 자리가 생긴다.
                 "masked_code": result.code,
                 "placeholder": PLACEHOLDER,
                 "owner": enclosing_owner(node, src),

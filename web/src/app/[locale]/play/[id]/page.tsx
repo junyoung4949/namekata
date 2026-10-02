@@ -21,7 +21,7 @@ export default async function PlayPage({
   if (!question) notFound();
 
   // 문법 강조는 서버에서 끝낸다. 클라이언트로는 토큰과 에디터 색만 간다.
-  const highlighted = await highlight(question.masked_code, question.language);
+  const highlighted = await highlight(question.maskedCode, question.language);
 
   /*
    * 목록에서 고른 조건을 그대로 이어받는다.

@@ -1,5 +1,8 @@
 package dev.namekata.question;
 
+import static java.util.stream.Collectors.toSet;
+
+import dev.namekata.naming.AnswerLeak;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.LinkedHashSet;
@@ -14,7 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 /**
  * 추출기가 보낸 문제를 DB에 반영한다.
  *
- * <p>규칙 셋이 전부다.
+ * <p>규칙 넷이 전부다.
  *
  * <ol>
  *   <li><b>추출기 칸만 갱신한다.</b> 검수 상태와 사람이 채운 저작권자는 건드리지
@@ -23,6 +26,8 @@ import org.springframework.transaction.annotation.Transactional;
  *       있어서, 지우면 그 기록이 어느 문제 것인지 알 수 없게 된다
  *   <li><b>다시 올라온 문제는 되살린다.</b> 필터를 되돌렸을 때 전에 쌓인 제출이
  *       그대로 이어진다
+ *   <li><b>답이 보이는 문제는 받지 않는다.</b> 추출기의 가리기를 믿지 않고 여기서
+ *       한 번 더 확인한다 ({@link dev.namekata.naming.AnswerLeak})
  * </ol>
  *
  * <p>JPA 대신 SQL 을 쓴다. 규칙 1이 "이 칸들만 갱신"인데, 엔티티를 불러와 고치는
@@ -81,21 +86,59 @@ public class QuestionImporter {
     @Transactional
     public ImportReport importAll(List<QuestionPayload> payloads) {
         if (payloads.isEmpty()) {
-            return ImportReport.of(0, 0, 0, List.of());
+            return ImportReport.of(0, 0, 0, List.of(), List.of());
         }
 
+        // 보낸 문제 전부의 id. 답이 보여서 거부한 것도 여기 남는다 — 빼면 아래
+        // retireMissing 이 "안 보내졌다"고 보고 이미 있던 멀쩡한 판을 내려 버린다.
+        // 받지 않은 것과 내려간 것은 다른 일이다.
         List<String> ids = payloads.stream().map(QuestionPayload::id).toList();
         Set<String> repos = new LinkedHashSet<>(payloads.stream().map(p -> p.source().repo()).toList());
 
-        // 넣기 전에 세어 둔다. upsert 가 끝나면 전부 "있는" 상태가 되어 구별할 수 없다.
-        Set<String> alreadyThere = findExisting(ids);
-        int revived = countRetired(ids);
+        List<ImportReport.Rejected> rejected = findLeaks(payloads);
+        Set<String> rejectedIds = rejected.stream().map(ImportReport.Rejected::id).collect(toSet());
+        List<QuestionPayload> accepted =
+                payloads.stream().filter(p -> !rejectedIds.contains(p.id())).toList();
 
-        upsert(payloads);
+        if (accepted.isEmpty()) {
+            // 넣을 게 없으면 내리지도 않는다. 전부 거부된 것은 추출기가 고장난
+            // 상황이고, 그걸 근거로 DB 를 줄이면 안 된다.
+            return ImportReport.of(0, 0, 0, List.of(), rejected);
+        }
+
+        List<String> acceptedIds = accepted.stream().map(QuestionPayload::id).toList();
+
+        // 넣기 전에 세어 둔다. upsert 가 끝나면 전부 "있는" 상태가 되어 구별할 수 없다.
+        int updated = findExisting(acceptedIds).size();
+        int revived = countRetired(acceptedIds);
+
+        upsert(accepted);
         List<String> retiredIds = retireMissing(repos, ids);
 
-        int updated = alreadyThere.size();
-        return ImportReport.of(ids.size() - updated, updated, revived, retiredIds);
+        return ImportReport.of(
+                acceptedIds.size() - updated, updated, revived, retiredIds, rejected);
+    }
+
+    /**
+     * 답이 코드에 그대로 보이는 문제를 골라낸다.
+     *
+     * <p>추출기가 이미 같은 검사를 하지만, 그쪽 단어 쪼개기가 틀리면 만들어야 할
+     * 변형을 못 만들어 누출을 놓친다. 그 경우 지금은 검수자가 눈으로 잡아야 하는데,
+     * 문제 수백 개에 그걸 기대할 수 없다. 서로 다른 구현으로 같은 성질을 확인한다.
+     */
+    private List<ImportReport.Rejected> findLeaks(List<QuestionPayload> payloads) {
+        return payloads.stream()
+                .flatMap(
+                        payload ->
+                                AnswerLeak.find(payload.maskedCode(), payload.answer())
+                                        .map(
+                                                visible ->
+                                                        new ImportReport.Rejected(
+                                                                payload.id(),
+                                                                "답이 코드에 보인다: '%s' (정답 '%s')"
+                                                                        .formatted(visible, payload.answer())))
+                                        .stream())
+                .toList();
     }
 
     private Set<String> findExisting(List<String> ids) {

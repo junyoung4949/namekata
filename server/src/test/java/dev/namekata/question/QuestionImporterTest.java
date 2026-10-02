@@ -144,6 +144,53 @@ class QuestionImporterTest {
         assertThat(questions.findById("q1").orElseThrow().reviewFlags()).isEmpty();
     }
 
+    @Test
+    @DisplayName("답이 코드에 보이면 받지 않는다")
+    void 답이_보이면_받지_않는다() {
+        // 추출기가 선언만 가리고 주석에 남은 이름을 놓친 상황.
+        ImportReport report =
+                importer.importAll(
+                        List.of(payload("q1", "axios/axios", "// common_prefix 를 구한다\nfunction ___NAME___() {}")));
+
+        assertThat(report.rejected()).hasSize(1);
+        assertThat(report.rejected().getFirst().id()).isEqualTo("q1");
+        assertThat(report.rejected().getFirst().reason()).contains("common_prefix");
+        assertThat(report.total()).isZero();
+        assertThat(questions.findById("q1")).isEmpty();
+    }
+
+    @Test
+    @DisplayName("거부된 문제 때문에 이미 있던 판이 내려가지는 않는다")
+    void 거부는_내림이_아니다() {
+        // 멀쩡한 판이 먼저 들어와 있다.
+        importer.importAll(List.of(payload("q1", "axios/axios")));
+        assertThat(questions.findById("q1")).isPresent();
+
+        // 같은 문제가 답이 보이는 모양으로 다시 왔다. 받지는 않지만, 추출기가
+        // "이 문제 없어졌다"고 말한 것은 아니므로 내려서도 안 된다.
+        ImportReport report =
+                importer.importAll(
+                        List.of(payload("q1", "axios/axios", "// commonPrefix\nfunction ___NAME___() {}")));
+
+        assertThat(report.rejected()).hasSize(1);
+        assertThat(report.retired()).isZero();
+        Question kept = questions.findById("q1").orElseThrow();
+        assertThat(kept.isRetired()).isFalse();
+        assertThat(kept.maskedCode()).isEqualTo("function ___NAME___(a, b) { return a; }");
+    }
+
+    @Test
+    @DisplayName("더 긴 이름의 일부로 나오는 것은 누출이 아니다")
+    void 더_긴_이름의_일부는_통과한다() {
+        // 답이 commonPrefix 인데 코드에 commonPrefixLength 가 있다. 답을 알려주지 않는다.
+        ImportReport report =
+                importer.importAll(
+                        List.of(payload("q1", "axios/axios", "function ___NAME___() { return commonPrefixLength; }")));
+
+        assertThat(report.rejected()).isEmpty();
+        assertThat(report.inserted()).isEqualTo(1);
+    }
+
     private static QuestionPayload payload(String id, String repo) {
         return payload(id, repo, "function ___NAME___(a, b) { return a; }");
     }

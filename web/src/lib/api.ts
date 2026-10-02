@@ -1,8 +1,8 @@
 /**
  * Spring Boot 서버로 나가는 창구.
  *
- * 서버 주소는 NAMEKATA_API_URL 로 준다. 없으면 서버를 쓰지 않는다는 뜻이고,
- * 그때는 파일 저장소로 떨어진다 (lib/store.ts 의 getStore).
+ * 서버 주소는 NAMEKATA_API_URL 로 준다. 반드시 있어야 한다 — 전에는 없으면
+ * 파일 저장소로 떨어졌지만 그 길을 지웠다 (lib/store.ts 참고).
  *
  * 모든 호출은 Next 서버에서만 일어난다. 브라우저가 Spring 을 직접 부르지
  * 않는 이유는 관리자 토큰이 서버에만 있어야 하기 때문이다 — 토큰을
@@ -12,10 +12,6 @@
 export function apiBase(): string | null {
   const url = process.env.NAMEKATA_API_URL?.trim();
   return url ? url.replace(/\/$/, "") : null;
-}
-
-export function isUsingServer(): boolean {
-  return apiBase() !== null;
 }
 
 export class ApiError extends Error {

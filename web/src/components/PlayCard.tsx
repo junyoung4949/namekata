@@ -52,13 +52,13 @@ export function PlayCard({
     () =>
       comment
         ? buildCommentBlock(
-            question.masked_code,
+            question.maskedCode,
             question.language,
             comment,
             highlighted.indentUnit,
           )
         : null,
-    [comment, question.masked_code, question.language, highlighted.indentUnit],
+    [comment, question.maskedCode, question.language, highlighted.indentUnit],
   );
 
   // 첫 빈칸에 커서를 두되 화면은 움직이지 않는다.
@@ -177,7 +177,7 @@ export function PlayCard({
           slotLength={question.answerLength}
           reveal={result?.answer}
           comment={commentBlock}
-          path={question.source.file_path}
+          path={question.source.filePath}
           owner={question.owner}
           input={
             result
