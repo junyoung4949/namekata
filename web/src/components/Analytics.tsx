@@ -11,6 +11,15 @@ import Script from "next/script";
  * **얼마나 적은지는 알 수 없다.** 추세를 보는 데는 쓸 수 있지만 절대값으로
  * 믿으면 안 된다.
  *
+ * 설치 직후 실제로 확인한 것 (같은 측정 ID, 같은 요청):
+ *
+ *   curl (맥)        /g/collect → 204
+ *   curl (서버)      /g/collect → 204
+ *   차단기 켜진 크롬 /g/collect → 503   ← 확장이 가로채 가짜 오류를 돌려준다
+ *
+ * 그러니 "GA 에 0 이 찍힌다"가 "아무도 안 왔다"를 뜻하지 않는다. 사람이
+ * 실제로 썼는지는 DB 의 submissions 로 본다 (deploy/stats.sh).
+ *
  * "사람이 실제로 썼나"의 답은 여기가 아니라 DB 의 submissions 에 있다. 봇은
  * 빈칸에 이름을 쳐 넣지 않는다 (deploy/stats.sh 참고).
  */
