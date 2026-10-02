@@ -10,8 +10,18 @@
 
 name: namekata
 
+# 로그를 무제한으로 쌓지 않는다. 기본 json-file 드라이버는 한도가 없어서
+# 디스크가 찰 때까지 자란다. 새 도메인은 인증서 투명성 로그를 통해 공개되는
+# 순간 스캐너가 몰려오므로, 아무도 모르는 사이트도 요청 로그는 계속 늘어난다.
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "20m"
+    max-file: "5"
+
 services:
   db:
+    logging: *logging
     image: postgres:17-alpine
     restart: unless-stopped
     environment:
@@ -30,6 +40,7 @@ services:
     # 포트를 밖으로 내보내지 않는다. 같은 네트워크의 server 만 부른다.
 
   server:
+    logging: *logging
     build:
       context: ../server
     restart: unless-stopped
@@ -52,8 +63,12 @@ services:
       start_period: 60s
 
   web:
+    logging: *logging
     build:
       context: ../web
+      args:
+        # 브라우저로 나가는 값이라 빌드 때 박힌다. 바꾸면 web 을 다시 빌드해야 한다.
+        NEXT_PUBLIC_GA_ID: ${GA_ID:-}
     restart: unless-stopped
     depends_on:
       server:
@@ -67,6 +82,7 @@ services:
       NEXT_PUBLIC_TAKEDOWN_CONTACT: ${TAKEDOWN_CONTACT:-about4949@gmail.com}
 
   caddy:
+    logging: *logging
     image: caddy:2-alpine
     restart: unless-stopped
     depends_on:

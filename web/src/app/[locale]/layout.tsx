@@ -5,6 +5,7 @@ import { getTranslations, setRequestLocale } from "next-intl/server";
 import { routing } from "@/i18n/routing";
 import { SiteHeader } from "@/components/SiteHeader";
 import { SiteFooter } from "@/components/SiteFooter";
+import { Analytics } from "@/components/Analytics";
 import "../globals.css";
 
 export function generateStaticParams() {
@@ -43,6 +44,8 @@ export default async function LocaleLayout({
           <main className="flex-1 w-full max-w-4xl mx-auto px-5 py-10">{children}</main>
           <SiteFooter />
         </NextIntlClientProvider>
+        {/* NEXT_PUBLIC_GA_ID 가 없으면 아무것도 그리지 않는다. */}
+        <Analytics />
       </body>
     </html>
   );

@@ -13,6 +13,12 @@ COPY . .
 # 그려지므로 빌드 중 호출은 나가지 않지만, lib/api.ts 가 값이 없으면 던진다.
 # 실제 주소는 실행할 때 환경변수로 들어온다.
 ENV NAMEKATA_API_URL=http://server:8080
+
+# NEXT_PUBLIC_ 로 시작하는 값은 브라우저로 나가므로 **빌드할 때** 번들에 박힌다.
+# 실행 시점 환경변수로는 바뀌지 않는다 — 그래서 build arg 로 받는다.
+ARG NEXT_PUBLIC_GA_ID=
+ENV NEXT_PUBLIC_GA_ID=$NEXT_PUBLIC_GA_ID
+
 RUN npx next build
 
 FROM node:22-slim
