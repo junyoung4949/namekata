@@ -19,7 +19,8 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  추출기:
+  extractor:
+    name: 추출기
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -36,7 +37,8 @@ jobs:
       - name: 테스트
         run: pytest tools/extract -q
 
-  서버:
+  server:
+    name: 서버
     runs-on: ubuntu-latest
     timeout-minutes: 15
 
@@ -84,7 +86,8 @@ jobs:
           retention-days: 7
           if-no-files-found: ignore
 
-  웹:
+  web:
+    name: 웹
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
