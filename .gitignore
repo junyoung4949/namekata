@@ -14,3 +14,6 @@ data/questions.json
 # 파이썬 컴파일 산출물.
 __pycache__/
 *.pyc
+
+# 배포 비밀값.
+deploy/.env

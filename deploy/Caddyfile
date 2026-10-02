@@ -1,0 +1,28 @@
+# 바깥에서 들어오는 유일한 문.
+#
+# SITE_ADDRESS 가 도메인이면 Caddy 가 Let's Encrypt 인증서를 자동으로 받고
+# 갱신까지 한다. 값이 ":80" 이면 (도메인 없이 IP 로 접속) 평문으로 받는다.
+
+{$SITE_ADDRESS} {
+	encode gzip zstd
+
+	# Next 의 정적 자산은 파일 이름에 해시가 붙어 있어서 영구 캐시해도 된다.
+	# 반대로 페이지 HTML 은 절대 캐시하지 않는다 — 문제·집계·검수 상태가
+	# 들어 있고, /admin 에는 정답이 들어 있다.
+	@static path /_next/static/* /icon.svg /favicon.ico
+	header @static Cache-Control "public, max-age=31536000, immutable"
+
+	header {
+		-Server
+		X-Content-Type-Options nosniff
+		Referrer-Policy strict-origin-when-cross-origin
+		X-Frame-Options DENY
+	}
+
+	reverse_proxy web:3000
+
+	log {
+		output stdout
+		format console
+	}
+}

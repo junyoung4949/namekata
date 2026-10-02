@@ -1,0 +1,88 @@
+# 한 대에 넷. 왜 쪼개지 않는가:
+#
+#   페이지 한 번 그리기 = Next → Spring 2회 → Postgres 여러 회
+#
+# 하나라도 다른 호스트에 두면 그 구간 왕복이 모든 페이지에 곱해진다. 여기서는
+# 전부 같은 컨테이너 네트워크 안이라 사실상 0ms 다.
+#
+# 바깥으로 열리는 것은 Caddy 하나다. Spring 의 /admin/* 는 토큰 하나로만
+# 막혀 있어서 인터넷에 노출할 이유가 없다.
+
+name: namekata
+
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: namekata
+      POSTGRES_USER: namekata
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD 가 필요하다}
+      # 한국어 정렬·대소문자 처리에 기본 로케일을 쓴다.
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U namekata -d namekata"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    # 포트를 밖으로 내보내지 않는다. 같은 네트워크의 server 만 부른다.
+
+  server:
+    build:
+      context: ../server
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      NAMEKATA_DB_URL: jdbc:postgresql://db:5432/namekata
+      NAMEKATA_DB_USER: namekata
+      NAMEKATA_DB_PASSWORD: ${DB_PASSWORD}
+      NAMEKATA_ADMIN_TOKEN: ${ADMIN_TOKEN:?ADMIN_TOKEN 이 필요하다}
+      # 운영에서는 승인된 문제만 내보낸다. prod 프로파일의 기본값이지만
+      # 명시해 둔다 — 이 값이 뒤집히면 검수 전 문제가 공개된다.
+      NAMEKATA_ALLOW_PENDING: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -fsS http://localhost:8080/questions > /dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+
+  web:
+    build:
+      context: ../web
+    restart: unless-stopped
+    depends_on:
+      server:
+        condition: service_started
+    environment:
+      # 컨테이너 이름으로 부른다. 외부로 나가지 않는다.
+      NAMEKATA_API_URL: http://server:8080
+      NAMEKATA_ADMIN_TOKEN: ${ADMIN_TOKEN}
+      # 안내 문구만 정한다. 거르는 일은 서버가 한다 (lib/questions.ts 참고).
+      NAMEKATA_ALLOW_PENDING: "0"
+      NEXT_PUBLIC_TAKEDOWN_CONTACT: ${TAKEDOWN_CONTACT:-about4949@gmail.com}
+
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    depends_on:
+      - web
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data      # 인증서. 지우면 Let's Encrypt 한도에 걸린다
+      - caddy-config:/config
+    environment:
+      # 도메인이 없으면 IP 로 뜬다 (그때는 HTTPS 없이 :80).
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+
+volumes:
+  db-data:
+  caddy-data:
+  caddy-config:
