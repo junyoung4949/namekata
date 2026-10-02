@@ -2,15 +2,11 @@
 #
 # SITE_ADDRESS 가 도메인이면 Caddy 가 Let's Encrypt 인증서를 자동으로 받고
 # 갱신까지 한다. 값이 ":80" 이면 (도메인 없이 IP 로 접속) 평문으로 받는다.
+#
+# 들어오는 것을 셋으로 나눈다. 셋의 보호 방법이 다르다.
 
 {$SITE_ADDRESS} {
 	encode gzip zstd
-
-	# Next 의 정적 자산은 파일 이름에 해시가 붙어 있어서 영구 캐시해도 된다.
-	# 반대로 페이지 HTML 은 절대 캐시하지 않는다 — 문제·집계·검수 상태가
-	# 들어 있고, /admin 에는 정답이 들어 있다.
-	@static path /_next/static/* /icon.svg /favicon.ico
-	header @static Cache-Control "public, max-age=31536000, immutable"
 
 	header {
 		-Server
@@ -19,7 +15,43 @@
 		X-Frame-Options DENY
 	}
 
-	reverse_proxy web:3000
+	# ── 1. 기계가 부르는 창구 ────────────────────────────────────────────
+	#
+	# GitHub Actions 의 추출 워크플로가 /admin/questions/pins 로 커밋을 받고
+	# /admin/questions/import 로 결과를 보낸다. Spring 으로 바로 넘긴다.
+	#
+	# 토큰이 막는다 (server 의 naming... 아니 admin.AdminGuard). 상수 시간
+	# 비교를 쓰고, 운영 프로파일에서 토큰 없이 뜨면 시작을 거부하므로 "토큰을
+	# 안 채운 채 열려 있는" 상태가 될 수 없다.
+	handle /admin/questions/* {
+		reverse_proxy server:8080
+	}
+
+	handle {
+		# ── 2. 사람이 보는 검수 화면 ──────────────────────────────────
+		#
+		# 여기에는 **정답이 들어 있다.** 그런데 Next 의 서버 컴포넌트가
+		# 서버 쪽 토큰으로 문제를 불러오기 때문에, 페이지 자체는 "누가
+		# 보는지"를 확인하지 않는다. 그대로 공개하면 들어온 아무나 전체
+		# 정답을 본다 — 이 사이트의 존재 이유가 무너진다.
+		#
+		# 승인·거부 동작(/api/admin)은 토큰 검사가 따로 있지만, **읽는 것**은
+		# 막는 장치가 없었다. 그 자리를 여기서 막는다.
+		@adminUI path /ko/admin /en/admin /ko/admin/* /en/admin/*
+		basic_auth @adminUI {
+			{$ADMIN_USER} {$ADMIN_PASSWORD_HASH}
+		}
+
+		# ── 3. 나머지 전부 ────────────────────────────────────────────
+		#
+		# Next 의 정적 자산은 파일 이름에 해시가 붙어 있어서 영구 캐시해도
+		# 된다. 반대로 페이지 HTML 은 절대 캐시하지 않는다 — 문제·집계·검수
+		# 상태가 들어 있다.
+		@static path /_next/static/* /icon.svg /favicon.ico
+		header @static Cache-Control "public, max-age=31536000, immutable"
+
+		reverse_proxy web:3000
+	}
 
 	log {
 		output stdout

@@ -81,6 +81,9 @@ services:
     environment:
       # 도메인이 없으면 IP 로 뜬다 (그때는 HTTPS 없이 :80).
       SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      # 검수 화면을 가리는 비밀번호. 정답이 보이는 화면이라 읽기부터 막는다.
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?ADMIN_PASSWORD_HASH 가 필요하다}
 
 volumes:
   db-data:
