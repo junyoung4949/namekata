@@ -103,8 +103,16 @@ cd web && npx tsc --noEmit && npx eslint src  # 웹
 
 ## 남은 숙제
 
-- 삭제 요청 연락처가 `example.invalid` 자리표시자다. 배포 전에 `NEXT_PUBLIC_TAKEDOWN_CONTACT` 를 채울 것
-- 배포처 미정. 서버는 Postgres 가 붙는 곳, 웹은 Vercel 에 `Root Directory = web` 으로 올리면 된다
+- **제출이 쌓이기 시작하면 Lightsail 자동 스냅샷을 켤 것.** 지금 백업(매일 `pg_dump`)은
+  박스 안에만 쌓여서 박스가 죽으면 같이 죽는다. 지금은 켜지 않았다 — 사람이 만든 데이터가
+  0이라 지킬 것이 없고, 박스가 통째로 사라져도 `provision.sh` + `deploy.sh` + 추출 워크플로로
+  12분이면 복구된다. 다시 만들 수 없는 것은 `submissions` 뿐이고, 그게 생기는 순간 조건이 바뀐다
+
+      aws lightsail enable-add-on --region ap-northeast-2 --resource-name namekata-app \
+        --add-on-request addOnType=AutoSnapshot,autoSnapshotAddOnRequest={snapshotTimeOfDay=19:00}
+
+- 도메인이 없어서 평문 `http://` 로 떠 있다. 도메인을 사면 `deploy/.env` 의 `SITE_ADDRESS` 에
+  적고 Caddy 를 재시작하는 것만으로 HTTPS 가 붙는다 (Caddy 가 인증서를 자동으로 받는다)
 - 변수 문제가 같은 파일의 메서드 문제 답을 보여주는 경우가 있다 (의도적으로 막지 않음 — 어떤 이름이 쓰이는지
   귀납하는 것도 연습이라고 보았다). 그 메서드 문제들의 측정 난이도는 실제보다 쉽게 나온다
 - 제출 전에 출처 링크로 원본을 먼저 보는 경우를 막을지 미정. 지금은 확인 창만 띄우고 통과시킨다
