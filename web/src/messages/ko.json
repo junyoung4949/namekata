@@ -2,7 +2,6 @@
   "common": {
     "appName": "namekata",
     "tagline": "오픈소스 코드로 이름 짓기를 연습합니다",
-    "play": "문제 풀기",
     "license": "라이선스",
     "takedown": "삭제 요청",
     "back": "목록으로",

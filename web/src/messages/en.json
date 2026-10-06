@@ -2,7 +2,6 @@
   "common": {
     "appName": "namekata",
     "tagline": "Practice naming with real open-source code",
-    "play": "Play",
     "license": "Licenses",
     "takedown": "Takedown",
     "back": "Back to list",
