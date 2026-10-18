@@ -331,3 +331,299 @@ pre,
     box-shadow: inset 0 -2px 0 var(--cb-decl-dark);
   }
 }
+
+/* ─────────────────────────────────────────────────────────── 가이드 덱
+ *
+ * 장을 가로로 넘겨 읽는다. 세로로 길게 잇지 않는 이유는 장이 원문의 절
+ * 하나에 해당해서 길이가 들쭉날쭉하기 때문이다 — 두 문장짜리 절과 표가
+ * 든 절이 한 흐름에 섞이면 어디가 끝인지 보이지 않는다.
+ *
+ * 판 하나의 높이를 화면에 맞춰 고정하고, 넘치는 장은 판 안에서만
+ * 스크롤된다. 그래서 장을 넘겨도 스크롤 위치가 따라오지 않는다.
+ */
+.deck {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* 장 번호 줄. 좁은 화면에서는 가로로 밀린다. */
+.deck-jump {
+  display: flex;
+  gap: 0.2rem;
+  overflow-x: auto;
+}
+
+.deck-jump button {
+  flex: none;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  background: none;
+  color: var(--muted);
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.deck-jump button:hover {
+  background: var(--role-chip);
+  color: var(--text);
+}
+
+.deck-jump button[aria-current="true"] {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.deck-view {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  background: var(--surface);
+}
+
+.deck-track {
+  display: flex;
+  /* 넘기는 느낌만 주고 길게 끌지 않는다. */
+  transition: transform 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.deck-panel {
+  flex: 0 0 100%;
+  /* 헤더·푸터·번호 줄·페이저를 뺀 나머지. 판마다 높이가 같아야 넘길 때
+     틀이 흔들리지 않는다. */
+  height: min(34rem, calc(100dvh - 20rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 1.75rem;
+}
+
+@media (max-width: 40rem) {
+  .deck-panel {
+    height: calc(100dvh - 18rem);
+    padding: 1.25rem;
+  }
+}
+
+.deck-bar {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  background: var(--accent);
+  transition: width 0.4s cubic-bezier(0.22, 0.61, 0.36, 1);
+}
+
+.deck-pager {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.deck-label {
+  font-size: 13px;
+  color: var(--muted);
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.deck-count {
+  margin-left: auto;
+  font-size: 12px;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.deck-pager button {
+  flex: none;
+  width: 2.25rem;
+  height: 2.25rem;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.deck-pager button:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.deck-pager button:disabled {
+  opacity: 0.25;
+  cursor: default;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deck-track,
+  .deck-bar {
+    transition: none;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────── 장 본문 */
+.chapter-num {
+  font-family: "JetBrains Mono", ui-monospace, monospace;
+  font-size: 12px;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+.chapter-title {
+  font-size: clamp(1.25rem, 3.5vw, 1.625rem);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+  margin-bottom: 1.1rem;
+}
+
+.chapter-code {
+  margin: 1.1rem 0;
+}
+
+/*
+ * 장 본문의 산문.
+ *
+ * 코드 펜스는 여기 오지 않는다 — 서버에서 떼어 내 CodeBlock 으로 그린다
+ * (lib/chapter.ts). 여기서 다룰 코드는 인라인 뿐이다.
+ */
+.prose-ko {
+  word-break: keep-all;
+  line-height: 1.75;
+}
+
+.prose-ko > :first-child {
+  margin-top: 0;
+}
+
+.prose-ko > :last-child {
+  margin-bottom: 0;
+}
+
+.prose-ko p {
+  margin: 0 0 0.9rem;
+  max-width: 62ch;
+}
+
+.prose-ko h2,
+.prose-ko h3 {
+  font-weight: 600;
+  letter-spacing: -0.015em;
+  margin: 1.5rem 0 0.6rem;
+  text-wrap: balance;
+}
+
+.prose-ko h2 {
+  font-size: 1.0625rem;
+}
+
+.prose-ko h3 {
+  font-size: 0.9375rem;
+  color: var(--muted);
+}
+
+.prose-ko ul,
+.prose-ko ol {
+  margin: 0 0 0.9rem;
+  padding-left: 1.3rem;
+  max-width: 62ch;
+}
+
+.prose-ko ul {
+  list-style: disc;
+}
+
+.prose-ko ol {
+  list-style: decimal;
+}
+
+.prose-ko li {
+  margin-bottom: 0.35rem;
+}
+
+.prose-ko li > ul,
+.prose-ko li > ol {
+  margin: 0.35rem 0 0;
+}
+
+.prose-ko strong {
+  font-weight: 600;
+}
+
+.prose-ko code {
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.875em;
+  background: var(--code-bg);
+  padding: 0.08em 0.3em;
+  border-radius: 3px;
+}
+
+.prose-ko a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.prose-ko blockquote {
+  margin: 0 0 0.9rem;
+  padding-left: 0.9rem;
+  border-left: 2px solid var(--border);
+  color: var(--muted);
+}
+
+/* 모르는 언어의 코드 펜스. shiki 를 안 거치고 그대로 그린다. */
+.prose-ko pre {
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  border-radius: 0.5rem;
+  padding: 0.9rem 1rem;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 0 0 0.9rem;
+}
+
+.prose-ko pre code {
+  background: none;
+  padding: 0;
+}
+
+/* 표는 자기 안에서만 가로로 밀린다. 본문이 옆으로 넘치면 안 된다. */
+.prose-scroll {
+  overflow-x: auto;
+  margin: 0 0 0.9rem;
+}
+
+.prose-ko table {
+  border-collapse: collapse;
+  width: 100%;
+  min-width: 24rem;
+  font-size: 13px;
+}
+
+.prose-ko th,
+.prose-ko td {
+  text-align: left;
+  padding: 0.45rem 0.7rem;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.prose-ko th {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 500;
+}

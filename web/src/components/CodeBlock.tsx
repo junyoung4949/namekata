@@ -34,9 +34,13 @@ export function CodeBlock({
   owner,
 }: {
   highlighted: Highlighted;
-  placeholder: string;
+  /**
+   * 가려진 이름 자리 표시. 주지 않으면 빈칸 없이 코드만 그린다 —
+   * 가이드 본문의 예시 코드가 그렇다.
+   */
+  placeholder?: string;
   /** 가려진 이름의 글자 수. 빈칸을 이만큼 그린다. */
-  slotLength: number;
+  slotLength?: number;
   reveal?: string;
   /** 주면 빈칸이 입력창이 된다. 답을 공개한 뒤에는 주지 않는다. */
   input?: SlotInput;
@@ -151,12 +155,12 @@ function FileTab({ path, owner }: { path: string; owner?: string | null }) {
  *
  * 훑는 순서는 그리는 순서와 같다 — 줄 순서대로, 줄 안에서는 토큰 순서대로.
  */
-function numberSlots(lines: HighlightedLine[], placeholder: string): number[][] {
+function numberSlots(lines: HighlightedLine[], placeholder?: string): number[][] {
   let seen = 0;
   return lines.map((line) =>
     line.tokens.map((token) => {
       const first = seen;
-      seen += token.content.split(placeholder).length - 1;
+      if (placeholder) seen += token.content.split(placeholder).length - 1;
       return first;
     }),
   );
@@ -230,8 +234,8 @@ function Token({
   firstSlot,
 }: {
   token: CodeToken;
-  placeholder: string;
-  slotLength: number;
+  placeholder?: string;
+  slotLength?: number;
   reveal?: string;
   input?: SlotInput;
   /** 이 토큰의 첫 빈칸이 문제 전체에서 몇 번째인지 */
@@ -240,7 +244,7 @@ function Token({
   const { content, style, bracket } = token;
   const className = bracket === undefined ? undefined : `bracket bracket-${bracket}`;
 
-  if (!content.includes(placeholder)) {
+  if (!placeholder || !content.includes(placeholder)) {
     return (
       <span className={className} style={style as React.CSSProperties}>
         {content}
@@ -260,7 +264,7 @@ function Token({
           )}
           {index < parts.length - 1 && (
             <Slot
-              length={slotLength}
+              length={slotLength ?? 1}
               reveal={reveal}
               input={input}
               index={firstSlot + index}
