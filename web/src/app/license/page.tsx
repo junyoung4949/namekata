@@ -1,14 +1,8 @@
-import { getTranslations, setRequestLocale } from "next-intl/server";
-import { Link } from "@/i18n/navigation";
+import Link from "next/link";
 import { requireAttribution } from "@/lib/attribution";
 import { listAll } from "@/lib/questions";
 
-export default async function LicensePage({ params }: { params: Promise<{ locale: string }> }) {
-  const { locale } = await params;
-  setRequestLocale(locale);
-  const t = await getTranslations("license");
-  const tc = await getTranslations("common");
-
+export default async function LicensePage() {
   // 출처는 문제 데이터에서 모은다. 손으로 적은 목록이 아니라 실제로 쓰는 저장소다.
   const questions = await listAll();
   const repos = new Map<
@@ -35,15 +29,25 @@ export default async function LicensePage({ params }: { params: Promise<{ locale
   return (
     <article className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("heading")}</h1>
-        <p className="text-muted max-w-2xl">{t("intro")}</p>
+        <h1 className="text-2xl font-semibold tracking-tight">라이선스와 출처</h1>
+        <p className="text-muted max-w-2xl">
+          namekata의 문제는 허용적 라이선스로 공개된 오픈소스 코드에서 가져옵니다. MIT, BSD,
+          Apache 2.0 코드만 사용하고, 문제마다 저장소·파일·커밋 해시·라이선스·저작권 문구를
+          함께 표시합니다.
+        </p>
       </header>
 
-      <Section title={t("modifiedHeading")} body={t("modifiedBody")} />
-      <Section title={t("endorsementHeading")} body={t("endorsementBody")} />
+      <Section
+        title="수정 사실"
+        body="문제로 쓰기 위해 원본 코드에서 식별자 이름을 가리고 주석과 설명 문자열을 제거했습니다. 표시된 코드는 원본 그대로가 아닙니다."
+      />
+      <Section
+        title="보증 아님"
+        body="여기에 인용된 프로젝트 이름은 출처 표시일 뿐이며, 해당 프로젝트가 namekata를 보증하거나 후원한다는 뜻이 아닙니다."
+      />
 
       <section className="space-y-3">
-        <h2 className="text-lg font-medium">{t("sourcesHeading")}</h2>
+        <h2 className="text-lg font-medium">사용 중인 저장소</h2>
         <ul className="grid gap-2">
           {[...repos.values()]
             .sort((a, b) => b.count - a.count)
@@ -65,7 +69,7 @@ export default async function LicensePage({ params }: { params: Promise<{ locale
                     {entry.license}
                   </span>
                   <span className="ml-auto text-xs text-muted">
-                    {t("questionCount", { count: entry.count })}
+                    문제 {entry.count}개
                   </span>
                 </div>
                 {entry.copyright && <p className="text-xs text-muted">{entry.copyright}</p>}
@@ -75,9 +79,9 @@ export default async function LicensePage({ params }: { params: Promise<{ locale
       </section>
 
       <p className="text-sm text-muted">
-        {t("takedownNote")}{" "}
+        코드 게시를 원하지 않으시면 삭제 요청 창구로 알려 주세요. 확인 후 즉시 내리겠습니다.{" "}
         <Link href="/takedown" className="underline underline-offset-4">
-          {tc("takedown")}
+          삭제 요청
         </Link>
       </p>
     </article>

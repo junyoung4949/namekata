@@ -1,10 +1,7 @@
-import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import Link from "next/link";
 import { Logo } from "./Logo";
 
 export function SiteHeader() {
-  const t = useTranslations("common");
-
   return (
     <header className="border-b border-border bg-surface">
       <div className="max-w-4xl mx-auto px-5 h-14 flex items-center gap-6">
@@ -20,7 +17,7 @@ export function SiteHeader() {
           풀러 온 사람이 페이지를 열 때마다 아이디·비밀번호를 묻는 창을 보게
           된다. 관리자는 주소를 직접 치거나 북마크해서 들어간다.
         */}
-        <Link href="/" aria-label={t("appName")} className="shrink-0">
+        <Link href="/" aria-label="namekata" className="shrink-0">
           <Logo className="h-5 w-auto text-accent" />
         </Link>
       </div>

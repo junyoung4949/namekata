@@ -1,13 +1,19 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useRouter } from "next/navigation";
 import { CodeBlock } from "./CodeBlock";
 import type { ReviewRow, ReviewStatus } from "@/lib/types";
 import type { Highlighted } from "@/lib/highlight";
 
 const TOKEN_KEY = "namekata.adminToken";
+
+const KIND: Record<string, string> = { method: "함수", variable: "변수", class: "클래스" };
+const LANGUAGE: Record<string, string> = {
+  java: "Java",
+  python: "Python",
+  javascript: "JavaScript",
+};
 
 export function AdminBoard({
   questions,
@@ -16,9 +22,6 @@ export function AdminBoard({
   questions: ReviewRow[];
   highlighted: Record<string, Highlighted>;
 }) {
-  const t = useTranslations("admin");
-  const tl = useTranslations("language");
-  const tk = useTranslations("home.kind");
   const router = useRouter();
   const [, startTransition] = useTransition();
   const [filter, setFilter] = useState<ReviewStatus | "all">("pending");
@@ -60,16 +63,18 @@ export function AdminBoard({
   const shown = filter === "all" ? questions : questions.filter((q) => q.status === filter);
 
   const label: Record<ReviewStatus, string> = {
-    pending: t("statusPending"),
-    approved: t("statusApproved"),
-    rejected: t("statusRejected"),
+    pending: "검수 전",
+    approved: "승인",
+    rejected: "거부",
   };
 
   return (
     <div className="space-y-8">
       <header className="space-y-2">
-        <h1 className="text-2xl font-semibold tracking-tight">{t("heading")}</h1>
-        <p className="text-muted max-w-2xl">{t("lede")}</p>
+        <h1 className="text-2xl font-semibold tracking-tight">문제 검수</h1>
+        <p className="text-muted max-w-2xl">
+          자동 필터를 통과한 후보입니다. 문제로 쓸 만한지 보고 승인하거나 거부하세요.
+        </p>
         {error && <p className="text-sm text-accent">{error}</p>}
       </header>
 
@@ -85,7 +90,7 @@ export function AdminBoard({
                 : "px-3 py-1 rounded-full border border-border text-sm text-muted hover:text-text"
             }
           >
-            {key === "all" ? t("filterAll") : label[key]} · {counts[key]}
+            {key === "all" ? "전체" : label[key]} · {counts[key]}
           </button>
         ))}
       </nav>
@@ -99,9 +104,9 @@ export function AdminBoard({
             <div className="flex flex-wrap items-center gap-3 text-xs text-muted">
               <span className="mono text-accent">lv{question.level}</span>
               <span className="px-2 py-0.5 rounded-full border border-border">
-                {tl(question.language)}
+                {LANGUAGE[question.language]}
               </span>
-              <span>{tk(question.kind)}</span>
+              <span>{KIND[question.kind]}</span>
               <span>{label[question.status]}</span>
               <span className="mono truncate">{question.source.repo}</span>
               <a
@@ -115,7 +120,7 @@ export function AdminBoard({
             </div>
 
             <div className="text-sm">
-              <span className="text-muted">{t("answerLabel")}: </span>
+              <span className="text-muted">원본 이름: </span>
               <span className="mono font-medium">{question.answer}</span>
             </div>
 
@@ -145,21 +150,21 @@ export function AdminBoard({
                 onClick={() => call({ action: "review", questionId: question.id, status: "approved" })}
                 className="rounded-md bg-match-soft text-match px-3 py-1.5 text-sm font-medium"
               >
-                {t("approve")}
+                승인
               </button>
               <button
                 type="button"
                 onClick={() => call({ action: "review", questionId: question.id, status: "rejected" })}
                 className="rounded-md border border-border px-3 py-1.5 text-sm text-muted"
               >
-                {t("reject")}
+                거부
               </button>
               <button
                 type="button"
                 onClick={() => call({ action: "review", questionId: question.id, status: "pending" })}
                 className="rounded-md border border-border px-3 py-1.5 text-sm text-muted"
               >
-                {t("reset")}
+                되돌리기
               </button>
             </div>
           </li>
