@@ -56,6 +56,7 @@ function Group({
   rows: Attached[];
 }) {
   const [open, setOpen] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const [busy, start] = useTransition();
 
   return (
@@ -65,9 +66,12 @@ function Group({
           <h3 className="text-sm font-medium">{title}</h3>
           <p className="text-xs text-muted">{hint}</p>
         </div>
-        <button type="button" className="admin-link" onClick={() => setOpen((now) => !now)}>
-          {open ? "닫기" : "문제 붙이기"}
-        </button>
+        <div className="flex items-center gap-3">
+          {failed && <span className="admin-error">{failed}</span>}
+          <button type="button" className="admin-link" onClick={() => setOpen((now) => !now)}>
+            {open ? "닫기" : "문제 붙이기"}
+          </button>
+        </div>
       </div>
 
       <ul className="grid gap-2">
@@ -83,8 +87,9 @@ function Group({
         <Picker
           onPick={(question) =>
             start(async () => {
-              await attach(guide, chapter.id, question.id, role);
-              setOpen(false);
+              const result = await attach(guide, chapter.id, question.id, role);
+              if (result.error) setFailed(result.error);
+              else setOpen(false);
             })
           }
           busy={busy}
@@ -106,6 +111,7 @@ function AttachedRow({
   row: Attached;
 }) {
   const [open, setOpen] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const [busy, start] = useTransition();
 
   return (
@@ -118,6 +124,7 @@ function AttachedRow({
         ) : (
           <span className="text-xs text-accent">설명 없음</span>
         )}
+        {failed && <span className="admin-error">{failed}</span>}
         <span className="ml-auto flex gap-3">
           <button type="button" className="admin-link" onClick={() => setOpen((now) => !now)}>
             {open ? "닫기" : "설명 쓰기"}
@@ -126,13 +133,24 @@ function AttachedRow({
             type="button"
             className="admin-link admin-link--danger"
             disabled={busy}
-            onClick={() => start(() => void detach(guide, chapterId, row.questionId, row.role))}
+            onClick={() =>
+              start(async () =>
+                setFailed((await detach(guide, chapterId, row.questionId, row.role)).error ?? null),
+              )
+            }
           >
             떼기
           </button>
         </span>
       </div>
-      {open && <NoteForm guide={guide} questionId={row.questionId} answer={row.answer} />}
+      {open && (
+        <NoteForm
+          guide={guide}
+          chapterId={chapterId}
+          questionId={row.questionId}
+          answer={row.answer}
+        />
+      )}
     </div>
   );
 }
@@ -146,16 +164,19 @@ function AttachedRow({
  */
 function NoteForm({
   guide,
+  chapterId,
   questionId,
   answer,
 }: {
   guide: string;
+  chapterId: number;
   questionId: string;
   answer: string;
 }) {
   const [brief, setBrief] = useState<string | null>(null);
   const [rationale, setRationale] = useState("");
   const [saved, setSaved] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const [busy, start] = useTransition();
 
   // 처음 펼칠 때 한 번만 읽어 온다.
@@ -179,6 +200,7 @@ function NoteForm({
           onChange={(event) => {
             setBrief(event.target.value);
             setSaved(false);
+            setFailed(null);
           }}
           className="admin-textarea admin-textarea--short"
           placeholder="값 하나를 받아 true/false 를 돌려줍니다…"
@@ -195,6 +217,7 @@ function NoteForm({
           onChange={(event) => {
             setRationale(event.target.value);
             setSaved(false);
+            setFailed(null);
           }}
           className="admin-textarea admin-textarea--short"
           placeholder={`\`${answer}\` 는 … [메서드 이름](/guide/${guide}/method-names) 참고`}
@@ -214,17 +237,22 @@ function NoteForm({
           disabled={busy}
           onClick={() =>
             start(async () => {
-              await saveNote(guide, questionId, {
+              const result = await saveNote(guide, chapterId, questionId, {
                 brief: brief.trim() || null,
                 rationale: rationale.trim() || null,
               });
-              setSaved(true);
+              setFailed(result.error ?? null);
+              setSaved(!result.error);
             })
           }
         >
           저장
         </button>
-        {saved && <span className="text-xs text-match">저장했습니다</span>}
+        {failed ? (
+          <span className="admin-error">{failed}</span>
+        ) : (
+          saved && <span className="text-xs text-match">저장했습니다</span>
+        )}
       </div>
     </div>
   );

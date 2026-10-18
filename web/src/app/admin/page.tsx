@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { listGuides } from "@/lib/admin";
 import { languageLabel } from "@/lib/guides";
-import { createGuide } from "./actions";
+import { NewGuideForm } from "@/components/admin/NewGuideForm";
 
 export const dynamic = "force-dynamic";
 
@@ -49,34 +49,7 @@ export default async function AdminPage() {
 
       <section className="space-y-3 rounded-lg border border-border bg-surface p-5">
         <h2 className="font-medium">새 가이드</h2>
-        <form action={createGuide} className="grid gap-3 sm:grid-cols-2">
-          <label className="grid gap-1">
-            <span className="text-xs text-muted">주소에 쓸 이름 (slug)</span>
-            <input name="slug" required placeholder="google-python-naming" className="admin-input mono" />
-          </label>
-          <label className="grid gap-1">
-            <span className="text-xs text-muted">언어</span>
-            <select name="language" defaultValue="common" className="admin-input">
-              <option value="common">공통</option>
-              <option value="java">Java</option>
-              <option value="python">Python</option>
-              <option value="javascript">JavaScript</option>
-            </select>
-          </label>
-          <label className="grid gap-1 sm:col-span-2">
-            <span className="text-xs text-muted">제목</span>
-            <input name="title" required placeholder="구글 파이썬 스타일가이드 · 네이밍" className="admin-input" />
-          </label>
-          <label className="grid gap-1 sm:col-span-2">
-            <span className="text-xs text-muted">한 줄 소개 (홈 카드에 쓰입니다)</span>
-            <input name="lede" className="admin-input" />
-          </label>
-          <div className="sm:col-span-2">
-            <button type="submit" className="admin-button">
-              만들기
-            </button>
-          </div>
-        </form>
+        <NewGuideForm />
       </section>
     </div>
   );

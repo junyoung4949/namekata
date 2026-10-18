@@ -1,7 +1,12 @@
 "use client";
 
-import { useTransition } from "react";
-import { removeGuide, saveGuide, setPublished } from "@/app/admin/actions";
+import { useActionState, useTransition } from "react";
+import {
+  removeGuide,
+  saveGuide,
+  setPublished,
+  type ActionResult,
+} from "@/app/admin/actions";
 import type { GuideRow } from "@/lib/admin";
 
 /**
@@ -13,6 +18,10 @@ import type { GuideRow } from "@/lib/admin";
  */
 export function GuideSettings({ guide }: { guide: GuideRow }) {
   const [busy, start] = useTransition();
+  const [state, act, pending] = useActionState<ActionResult, FormData>(
+    saveGuide.bind(null, guide.slug),
+    {},
+  );
 
   return (
     <section className="space-y-3">
@@ -43,7 +52,7 @@ export function GuideSettings({ guide }: { guide: GuideRow }) {
       </div>
 
       <form
-        action={saveGuide.bind(null, guide.slug)}
+        action={act}
         className="grid gap-3 rounded-lg border border-border bg-surface p-5 sm:grid-cols-2"
       >
         <label className="grid gap-1">
@@ -89,10 +98,14 @@ export function GuideSettings({ guide }: { guide: GuideRow }) {
           />
         </label>
 
-        <div className="sm:col-span-2">
-          <button type="submit" className="admin-button">
-            저장
+        <div className="sm:col-span-2 flex items-center gap-3">
+          <button type="submit" className="admin-button" disabled={pending}>
+            {pending ? "저장하는 중" : "저장"}
           </button>
+          {state.error && <span className="admin-error">{state.error}</span>}
+          {!state.error && state.savedAt && (
+            <span className="text-xs text-match">저장했습니다</span>
+          )}
         </div>
       </form>
     </section>

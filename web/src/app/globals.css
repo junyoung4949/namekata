@@ -1255,3 +1255,12 @@ pre,
 .text-match {
   color: var(--match);
 }
+
+/* 편집 화면의 오류. 조용히 실패하는 게 제일 나쁘다. */
+.admin-error {
+  font-size: 12px;
+  color: var(--bg);
+  background: var(--wrong, #a4311f);
+  border-radius: 0.25rem;
+  padding: 0.15rem 0.5rem;
+}

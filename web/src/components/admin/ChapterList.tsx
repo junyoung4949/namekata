@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useState, useTransition } from "react";
-import { createChapter, moveChapter } from "@/app/admin/actions";
+import { useActionState, useState, useTransition } from "react";
+import { createChapter, moveChapter, type ActionResult } from "@/app/admin/actions";
 import type { ChapterRow } from "@/lib/admin";
 
 /**
@@ -15,11 +15,17 @@ import type { ChapterRow } from "@/lib/admin";
 export function ChapterList({ guide, chapters }: { guide: string; chapters: ChapterRow[] }) {
   const [busy, start] = useTransition();
   const [adding, setAdding] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
+  const [state, act, pending] = useActionState<ActionResult, FormData>(
+    createChapter.bind(null, guide),
+    {},
+  );
 
   return (
     <section className="space-y-3">
       <div className="flex items-center justify-between gap-4">
         <h2 className="font-medium">장 {chapters.length}개</h2>
+        {failed && <span className="admin-error">{failed}</span>}
         <button type="button" className="admin-link" onClick={() => setAdding((now) => !now)}>
           {adding ? "닫기" : "새 장"}
         </button>
@@ -27,7 +33,7 @@ export function ChapterList({ guide, chapters }: { guide: string; chapters: Chap
 
       {adding && (
         <form
-          action={createChapter.bind(null, guide)}
+          action={act}
           className="grid gap-3 rounded-lg border border-border bg-surface p-4 sm:grid-cols-2"
         >
           <label className="grid gap-1">
@@ -39,10 +45,11 @@ export function ChapterList({ guide, chapters }: { guide: string; chapters: Chap
             <input name="title" required placeholder="상수 이름" className="admin-input" />
           </label>
           <input type="hidden" name="body" value="" />
-          <div className="sm:col-span-2">
-            <button type="submit" className="admin-button">
-              만들고 본문 쓰러 가기
+          <div className="sm:col-span-2 flex items-center gap-3">
+            <button type="submit" className="admin-button" disabled={pending}>
+              {pending ? "만드는 중" : "만들고 본문 쓰러 가기"}
             </button>
+            {state.error && <span className="admin-error">{state.error}</span>}
           </div>
         </form>
       )}
@@ -78,7 +85,9 @@ export function ChapterList({ guide, chapters }: { guide: string; chapters: Chap
                   type="button"
                   className="admin-icon"
                   disabled={index === 0 || busy}
-                  onClick={() => start(() => void moveChapter(guide, chapter.id, -1))}
+                  onClick={() =>
+                    start(async () => setFailed((await moveChapter(guide, chapter.id, -1)).error ?? null))
+                  }
                   aria-label="위로"
                 >
                   ↑
@@ -87,7 +96,9 @@ export function ChapterList({ guide, chapters }: { guide: string; chapters: Chap
                   type="button"
                   className="admin-icon"
                   disabled={index === chapters.length - 1 || busy}
-                  onClick={() => start(() => void moveChapter(guide, chapter.id, 1))}
+                  onClick={() =>
+                    start(async () => setFailed((await moveChapter(guide, chapter.id, 1)).error ?? null))
+                  }
                   aria-label="아래로"
                 >
                   ↓
