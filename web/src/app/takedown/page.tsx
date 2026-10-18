@@ -4,7 +4,7 @@ export default function TakedownPage() {
   const contact = takedownContact();
 
   return (
-    <article className="space-y-8">
+    <article className="page space-y-8">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">삭제 요청</h1>
         <p className="text-muted max-w-2xl">

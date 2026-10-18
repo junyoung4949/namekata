@@ -14,7 +14,7 @@ export default async function HomePage() {
   const guides = await listGuides();
 
   return (
-    <div className="space-y-8">
+    <div className="page space-y-8">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">이름 짓는 법</h1>
         <p className="text-muted max-w-2xl">

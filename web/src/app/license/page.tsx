@@ -27,7 +27,7 @@ export default async function LicensePage() {
   }
 
   return (
-    <article className="space-y-8">
+    <article className="page space-y-8">
       <header className="space-y-2">
         <h1 className="text-2xl font-semibold tracking-tight">라이선스와 출처</h1>
         <p className="text-muted max-w-2xl">

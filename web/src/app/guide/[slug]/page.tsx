@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
-import { getGuide } from "@/lib/guides";
+import { getGuide, languageLabel, type GuideCard } from "@/lib/guides";
 import { splitChapter, type ChapterPart } from "@/lib/chapter";
 import { highlight } from "@/lib/highlight";
 import { GuideDeck, type DeckPanel } from "@/components/GuideDeck";
@@ -49,8 +49,15 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
       kind: "chapter",
       node: (
         <article className="chapter">
-          <p className="chapter-num mono">{chapterNo}</p>
-          <h1 className="chapter-title">{chapter.title}</h1>
+          {/*
+            장 제목은 크게 걸지 않는다. 한 판에 한 장이고 오른쪽 탭이 지금
+            어디인지 늘 보여 주므로, 제목은 "여기가 어디인지" 확인하는
+            이정표면 충분하다. 자리를 본문에 내준다.
+          */}
+          <p className="chapter-eyebrow">
+            <span className="chapter-num mono">{chapterNo}</span>
+            {chapter.title}
+          </p>
           <Body parts={parts} />
         </article>
       ),
@@ -71,7 +78,36 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
     }
   }
 
-  return <GuideDeck panels={panels} />;
+  return (
+    <div className="guide">
+      <header className="guide-head">
+        <span className="guide-lang">{languageLabel(found.guide.language)}</span>
+        <h1 className="guide-title">{found.guide.title}</h1>
+      </header>
+
+      <GuideDeck panels={panels} footer={<Credit guide={found.guide} />} />
+    </div>
+  );
+}
+
+/**
+ * 출처 표기.
+ *
+ * 아래 줄에 작게 깐다. 번역을 싣는 이상 빠질 수 없는 것이지만(구글
+ * 스타일가이드는 CC-BY 3.0 이라 저작자 표시와 개작 사실 명시를 요구한다)
+ * 읽는 데 끼어들 이유는 없다. 늘 보이되 눈에 걸리지 않는 자리가 여기다.
+ */
+function Credit({ guide }: { guide: GuideCard }) {
+  if (!guide.source?.url) return <span className="deck-credit" />;
+
+  return (
+    <span className="deck-credit">
+      <a href={guide.source.url} target="_blank" rel="noreferrer noopener">
+        원문{guide.source.title ? ` ${guide.source.title}` : ""} ↗
+      </a>
+      {guide.source.license && ` · ${guide.source.license} · 한국어 번역`}
+    </span>
+  );
 }
 
 function Body({ parts }: { parts: ChapterPart[] }) {

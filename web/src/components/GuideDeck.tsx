@@ -3,16 +3,16 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type DeckPanel = {
-  /** 번호 줄의 툴팁과 아래쪽 현재 위치 표시에 쓴다. */
+  /** 탭의 툴팁과 판 안의 머리줄에 쓴다. */
   title: string;
   /**
-   * 번호 줄에 찍을 글자.
+   * 탭에 찍을 글자.
    *
    * 판 순번을 그대로 쓰지 않는다. 연습 판이 장 사이에 끼어 있어서, 세 번째
    * 판이 세 번째 장이 아닐 수 있다. 무엇을 찍을지는 페이지가 정한다.
    */
   label: string;
-  /** 연습 판은 번호 줄에서 다르게 칠한다 — 읽는 판과 푸는 판이 섞여 있다. */
+  /** 연습 판은 탭에서 다르게 칠한다 — 읽는 판과 푸는 판이 섞여 있다. */
   kind: "chapter" | "practice";
   node: React.ReactNode;
 };
@@ -20,15 +20,22 @@ export type DeckPanel = {
 /**
  * 장을 가로로 넘겨 읽는 틀.
  *
- * 세로로 길게 잇지 않고 한 판에 한 장씩 두는 이유는, 장이 원문의 절 하나에
- * 해당해서 길이가 들쭉날쭉하기 때문이다. 두 문장짜리 절과 표가 든 절이
- * 한 흐름에 섞이면 어디가 끝인지 보이지 않는다.
+ * 오른쪽에 공책 색인 같은 탭을 세워 둔다. 지금 어디를 읽고 있는지가 늘
+ * 보이고, 누르면 바로 간다. 넘길 수 있는 화면이라는 것도 이 탭이 알려준다 —
+ * 번호 줄을 위에 눕혀 두면 그냥 목차로 읽히고 만다.
  *
  * 긴 장은 판 안에서 세로로 스크롤된다. 그래서 스와이프는 가로로 움직인
  * 거리가 세로보다 뚜렷이 클 때만 장을 넘긴다 — 읽다가 손가락이 틀어졌다고
  * 장이 넘어가면 읽을 수가 없다.
  */
-export function GuideDeck({ panels: items }: { panels: DeckPanel[] }) {
+export function GuideDeck({
+  panels: items,
+  footer,
+}: {
+  panels: DeckPanel[];
+  /** 아래 줄 왼쪽에 작게 깔 것. 출처 표기가 여기 들어간다. */
+  footer?: React.ReactNode;
+}) {
   const [at, setAt] = useState(0);
   const panels = useRef<(HTMLDivElement | null)[]>([]);
   const touch = useRef<{ x: number; y: number } | null>(null);
@@ -60,61 +67,64 @@ export function GuideDeck({ panels: items }: { panels: DeckPanel[] }) {
 
   return (
     <div className="deck">
-      <nav className="deck-jump" aria-label="장 이동">
-        {items.map((item, index) => (
-          <button
-            key={index}
-            type="button"
-            title={item.title}
-            data-kind={item.kind}
-            aria-current={index === at}
-            onClick={() => go(index)}
-          >
-            {item.label}
-          </button>
-        ))}
-      </nav>
-
-      <div
-        className="deck-view"
-        onTouchStart={(event) => {
-          touch.current = {
-            x: event.changedTouches[0].clientX,
-            y: event.changedTouches[0].clientY,
-          };
-        }}
-        onTouchEnd={(event) => {
-          const from = touch.current;
-          touch.current = null;
-          if (!from) return;
-          const dx = event.changedTouches[0].clientX - from.x;
-          const dy = event.changedTouches[0].clientY - from.y;
-          if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) {
-            go(dx < 0 ? at + 1 : at - 1);
-          }
-        }}
-      >
-        <div className="deck-track" style={{ transform: `translateX(-${at * 100}%)` }}>
-          {items.map((item, index) => (
-            <div
-              key={index}
-              className="deck-panel"
-              ref={(node) => {
-                panels.current[index] = node;
-              }}
-              // 보이지 않는 판은 탭 순서와 읽기에서 뺀다.
-              inert={index !== at}
-              aria-hidden={index !== at}
-            >
-              {item.node}
-            </div>
-          ))}
+      <div className="deck-body">
+        <div
+          className="deck-view"
+          onTouchStart={(event) => {
+            touch.current = {
+              x: event.changedTouches[0].clientX,
+              y: event.changedTouches[0].clientY,
+            };
+          }}
+          onTouchEnd={(event) => {
+            const from = touch.current;
+            touch.current = null;
+            if (!from) return;
+            const dx = event.changedTouches[0].clientX - from.x;
+            const dy = event.changedTouches[0].clientY - from.y;
+            if (Math.abs(dx) > 55 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              go(dx < 0 ? at + 1 : at - 1);
+            }
+          }}
+        >
+          <div className="deck-track" style={{ transform: `translateX(-${at * 100}%)` }}>
+            {items.map((item, index) => (
+              <div
+                key={index}
+                className="deck-panel"
+                ref={(node) => {
+                  panels.current[index] = node;
+                }}
+                // 보이지 않는 판은 탭 순서와 읽기에서 뺀다.
+                inert={index !== at}
+                aria-hidden={index !== at}
+              >
+                {item.node}
+              </div>
+            ))}
+          </div>
+          <div className="deck-bar" style={{ width: `${((at + 1) / count) * 100}%` }} />
         </div>
-        <div className="deck-bar" style={{ width: `${((at + 1) / count) * 100}%` }} />
+
+        {/* 공책 색인. 넓은 화면에서는 오른쪽에 세우고, 좁으면 위에 눕힌다. */}
+        <nav className="deck-tabs" aria-label="장 이동">
+          {items.map((item, index) => (
+            <button
+              key={index}
+              type="button"
+              title={item.title}
+              data-kind={item.kind}
+              aria-current={index === at}
+              onClick={() => go(index)}
+            >
+              {item.label}
+            </button>
+          ))}
+        </nav>
       </div>
 
       <div className="deck-pager">
-        <span className="deck-label">{items[at].title}</span>
+        {footer}
         <span className="deck-count mono">
           {at + 1} / {count}
         </span>

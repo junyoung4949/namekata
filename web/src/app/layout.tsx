@@ -23,7 +23,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="ko">
       <body className="min-h-screen flex flex-col">
         <SiteHeader />
-        <main className="flex-1 w-full max-w-4xl mx-auto px-5 py-10">{children}</main>
+        {/* 폭은 페이지가 정한다. 가이드는 화면을 넓게 쓰고, 글 페이지는 좁게 읽힌다. */}
+        <main className="flex-1 w-full">{children}</main>
         <SiteFooter />
         {/* NEXT_PUBLIC_GA_ID 가 없으면 아무것도 그리지 않는다. */}
         <Analytics />
