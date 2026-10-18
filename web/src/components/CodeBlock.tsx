@@ -1,6 +1,5 @@
 import { Fragment } from "react";
-import type { CommentBlock } from "@/lib/comment";
-import type { DocStyle, Highlighted, HighlightedLine, Token as CodeToken } from "@/lib/highlight";
+import type { Highlighted, HighlightedLine, Token as CodeToken } from "@/lib/highlight";
 
 /**
  * 빈칸에 직접 이름을 치게 할 때 넘기는 것들.
@@ -30,7 +29,6 @@ export function CodeBlock({
   placeholder,
   slotLength,
   reveal,
-  comment,
   input,
   path,
   owner,
@@ -40,8 +38,6 @@ export function CodeBlock({
   /** 가려진 이름의 글자 수. 빈칸을 이만큼 그린다. */
   slotLength: number;
   reveal?: string;
-  /** 되살린 원본 주석. 원래 있던 자리에 끼워 넣는다 (lib/comment.ts). */
-  comment?: CommentBlock | null;
   /** 주면 빈칸이 입력창이 된다. 답을 공개한 뒤에는 주지 않는다. */
   input?: SlotInput;
   /**
@@ -55,7 +51,7 @@ export function CodeBlock({
   owner?: string | null;
 }) {
   const { indentUnit, colors } = highlighted;
-  const lines = merge(highlighted.lines, comment, colors.doc);
+  const lines = highlighted.lines;
   const width = String(lines.length).length;
 
   // 빈칸 번호는 그리기 전에 다 매겨 둔다 (아래 numberSlots).
@@ -164,35 +160,6 @@ function numberSlots(lines: HighlightedLine[], placeholder: string): number[][] 
       return first;
     }),
   );
-}
-
-/**
- * 되살린 주석을 코드 줄 사이에 끼워 넣는다.
- *
- * 주석도 코드와 똑같이 한 줄씩 그린다. 줄 번호가 이어지고 들여쓰기
- * 가이드도 그대로 지나가서, 주석이 원래부터 거기 있던 것처럼 보인다.
- * 색은 테마가 그 자리에 쓰는 색을 토큰에 직접 심는다 (lib/highlight.ts의
- * doc). 주석 안에 가려진 이름이 들어 있으면 코드와 같은 빈칸으로 나온다.
- */
-function merge(lines: HighlightedLine[], comment: CommentBlock | null | undefined, doc: DocStyle) {
-  if (!comment) return lines;
-
-  const style: Record<string, string> = {
-    "--shiki-light": doc.light,
-    "--shiki-dark": doc.dark,
-    ...(doc.italic ? { fontStyle: "italic" } : {}),
-  };
-  const inserted = comment.lines.map((line) => ({
-    guides: line.guides,
-    indentRest: line.indentRest,
-    tokens: [{ content: line.text, style }],
-  }));
-
-  return [
-    ...lines.slice(0, comment.at),
-    ...inserted,
-    ...lines.slice(comment.at + comment.replace),
-  ];
 }
 
 /**

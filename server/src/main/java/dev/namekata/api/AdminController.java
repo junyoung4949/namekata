@@ -1,12 +1,9 @@
 package dev.namekata.api;
 
 import dev.namekata.admin.AdminGuard;
-import dev.namekata.moderation.ModerationService;
-import dev.namekata.moderation.Report;
 import dev.namekata.question.Question;
 import dev.namekata.question.QuestionRepository;
 import dev.namekata.question.ReviewStatus;
-import java.time.Instant;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -33,13 +30,10 @@ public class AdminController {
 
     private final AdminGuard guard;
     private final QuestionRepository questions;
-    private final ModerationService moderation;
 
-    public AdminController(
-            AdminGuard guard, QuestionRepository questions, ModerationService moderation) {
+    public AdminController(AdminGuard guard, QuestionRepository questions) {
         this.guard = guard;
         this.questions = questions;
-        this.moderation = moderation;
     }
 
     /**
@@ -86,25 +80,6 @@ public class AdminController {
         return toRow(questions.save(question));
     }
 
-    @PostMapping("/questions/{id}/hide")
-    @ResponseStatus(HttpStatus.OK)
-    public void hide(
-            @RequestHeader(name = "x-admin-token", required = false) String token,
-            @PathVariable String id,
-            @RequestBody HideRequest request) {
-        guard.check(token);
-        moderation.hide(id, request.name());
-    }
-
-    @GetMapping("/reports")
-    public List<ReportRow> reports(
-            @RequestHeader(name = "x-admin-token", required = false) String token) {
-        guard.check(token);
-        return moderation.recentReports().stream()
-                .map(report -> new ReportRow(report.questionId(), report.name(), report.createdAt()))
-                .toList();
-    }
-
     private Question find(String id) {
         return questions
                 .findById(id)
@@ -129,13 +104,9 @@ public class AdminController {
             boolean retired,
             SourceView source) {}
 
-    public record ReportRow(String questionId, String name, Instant at) {}
-
     public record ReviewRequest(ReviewStatus status) {}
 
     public record CopyrightRequest(String copyrightHolder) {}
-
-    public record HideRequest(String name) {}
 
     private static ReviewRow toRow(Question question) {
         return new ReviewRow(

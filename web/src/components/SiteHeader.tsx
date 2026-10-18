@@ -1,6 +1,5 @@
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
-import { LocaleSwitcher } from "./LocaleSwitcher";
 import { Logo } from "./Logo";
 
 export function SiteHeader() {
@@ -24,9 +23,6 @@ export function SiteHeader() {
         <Link href="/" aria-label={t("appName")} className="shrink-0">
           <Logo className="h-5 w-auto text-accent" />
         </Link>
-        <div className="ml-auto">
-          <LocaleSwitcher />
-        </div>
       </div>
     </header>
   );

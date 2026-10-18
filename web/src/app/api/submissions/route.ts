@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { openComment, revealAnswer } from "@/lib/questions";
+import { revealAnswer } from "@/lib/questions";
 import { getStore } from "@/lib/store";
 import { isValidIdentifier } from "@/lib/scoring";
 
@@ -30,31 +30,21 @@ export async function POST(request: Request) {
 }
 
 /**
- * 제출하지 않고 열어보는 것들. 둘 다 눌러서 여는 것이라 POST와 따로 둔다.
+ * 답을 보고 넘어간다. 제출이 아니므로 저장하지 않는다.
  *
- * - `comment=1`: 원본 주석
- * - `answer=1`: 원본 이름 (답을 보고 넘어가기)
- *
- * 답만 보고 넘어간 것은 제출이 아니므로 저장하지 않는다. 다른 사람들의
- * 답은 함께 내려보낸다 — 답을 본 뒤에는 감출 이유가 없다.
+ * 전에는 `comment=1` 로 원본 주석을 여는 길도 있었다. 감점을 받고 여는
+ * 힌트였는데, 상황 설명을 처음부터 보여 주기로 하면서 없앴다.
  */
 export async function GET(request: Request) {
-  const { searchParams } = new URL(request.url);
-  const questionId = searchParams.get("questionId");
-  const wantsComment = searchParams.get("comment") === "1";
-  const wantsAnswer = searchParams.get("answer") === "1";
-
-  if (!questionId || (!wantsComment && !wantsAnswer)) {
+  const questionId = new URL(request.url).searchParams.get("questionId");
+  if (!questionId) {
     return NextResponse.json({ error: "invalid request" }, { status: 400 });
   }
 
   try {
-    if (wantsAnswer) {
-      const revealed = await revealAnswer(questionId);
-      if (!revealed) return NextResponse.json({ error: "unknown question" }, { status: 404 });
-      return NextResponse.json(revealed);
-    }
-    return NextResponse.json({ docstring: await openComment(questionId) });
+    const revealed = await revealAnswer(questionId);
+    if (!revealed) return NextResponse.json({ error: "unknown question" }, { status: 404 });
+    return NextResponse.json(revealed);
   } catch {
     return NextResponse.json({ error: "unknown question" }, { status: 404 });
   }

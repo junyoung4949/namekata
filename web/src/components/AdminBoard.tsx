@@ -6,18 +6,15 @@ import { useRouter } from "@/i18n/navigation";
 import { CodeBlock } from "./CodeBlock";
 import type { ReviewRow, ReviewStatus } from "@/lib/types";
 import type { Highlighted } from "@/lib/highlight";
-import type { Report } from "@/lib/store";
 
 const TOKEN_KEY = "namekata.adminToken";
 
 export function AdminBoard({
   questions,
   highlighted,
-  reports,
 }: {
   questions: ReviewRow[];
   highlighted: Record<string, Highlighted>;
-  reports: Report[];
 }) {
   const t = useTranslations("admin");
   const tl = useTranslations("language");
@@ -169,30 +166,6 @@ export function AdminBoard({
         ))}
       </ul>
 
-      <section className="space-y-3">
-        <h2 className="text-lg font-medium">{t("reportsHeading")}</h2>
-        {reports.length === 0 ? (
-          <p className="text-muted text-sm">{t("reportsEmpty")}</p>
-        ) : (
-          <ul className="divide-y divide-border rounded-lg border border-border bg-surface">
-            {reports.map((report, index) => (
-              <li key={index} className="flex items-center gap-3 px-4 py-2 text-sm">
-                <span className="mono">{report.name}</span>
-                <span className="text-xs text-muted truncate">{report.questionId}</span>
-                <button
-                  type="button"
-                  onClick={() =>
-                    call({ action: "hide", questionId: report.questionId, name: report.name })
-                  }
-                  className="ml-auto text-xs underline underline-offset-4 text-muted hover:text-text"
-                >
-                  {t("hide")}
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </div>
   );
 }

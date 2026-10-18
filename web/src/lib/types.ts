@@ -15,24 +15,6 @@ export type Language = "java" | "python" | "javascript";
 export type Kind = "method" | "variable" | "class";
 export type ReviewStatus = "pending" | "approved" | "rejected";
 
-/** lv0~lv5. 추출기가 정적으로 매기고, 표본이 쌓이면 실측으로 덮는다 (lib/level.ts). */
-export type Level = 0 | 1 | 2 | 3 | 4 | 5;
-
-/**
- * 한 문제에 쌓인 제출 집계. 서버의 {@code naming.QuestionStats}.
- *
- * 두 가지를 따로 센다. 단어 겹침은 이 앱이 쓰는 채점 기준이고, 원본 일치는
- * 글자까지 똑같았던 비율이다. 이름 짓기에 정답은 없다는 게 이 앱의 입장이라
- * 목록에는 겹침률을 쓰고, 일치율은 문제를 푼 뒤에 보인다.
- */
-export type QuestionStats = {
-  total: number;
-  /** 단어가 하나라도 겹친 제출 수. */
-  partial: number;
-  /** 원본과 글자까지 같았던 제출 수. */
-  exact: number;
-};
-
 /**
  * 출처. 서버의 {@code api.SourceView}.
  *
@@ -58,10 +40,10 @@ export type QuestionSource = {
 };
 
 /**
- * 풀이 화면에 내려오는 문제. 서버의 {@code api.PublicController.PublicQuestion}.
+ * 연습 화면에 내려오는 문제. 서버의 {@code api.PublicController.PublicQuestion}.
  *
- * 정답과 주석이 빠져 있다. 이름의 길이만은 일부러 내려온다 — 빈칸을 글자
- * 수만큼 그려서 몇 글자짜리 이름인지 보이게 하기로 했다.
+ * 정답이 빠져 있다. 이름의 길이만은 일부러 내려온다 — 빈칸을 글자 수만큼
+ * 그려서 몇 글자짜리 이름인지 보이게 하기로 했다.
  */
 export type PublicQuestion = {
   id: string;
@@ -76,9 +58,8 @@ export type PublicQuestion = {
    * 코드 조각 바깥에서 따로 들고 온다 (tools/extract 의 enclosing_owner).
    */
   owner: string | null;
+  /** 추출기가 코드만 보고 매긴 등급. 검수 화면이 참고값으로 쓴다. */
   level: number;
-  /** 실제로 풀어 본 표본이 쌓여서 등급이 실측으로 정해졌는지. */
-  measuredLevel: boolean;
   /**
    * 자동 검사가 확신하지 못한 자리. 빈 목록이면 깨끗이 통과했다.
    *
@@ -87,8 +68,6 @@ export type PublicQuestion = {
    * 표시를 달아 검수 화면이 먼저 보여준다 (tools/extract 의 Masked).
    */
   reviewFlags: string[];
-  /** 주석을 열 수 있는 문제인지. 주석 내용은 열 때만 내려온다. */
-  hasComment: boolean;
   answerLength: number;
   source: QuestionSource;
 };
@@ -97,7 +76,7 @@ export type PublicQuestion = {
  * 검수 화면에 내려오는 문제. 서버의 {@code api.AdminController.ReviewRow}.
  *
  * 정답과 주석이 들어 있다 — 그게 검수할 대상이다. 반대로 풀이 화면에만
- * 있는 칸(measuredLevel·hasComment·answerLength)은 여기 없다.
+ * 있는 칸(answerLength)은 여기 없다.
  */
 export type ReviewRow = {
   id: string;
@@ -117,12 +96,6 @@ export type ReviewRow = {
   source: QuestionSource;
 };
 
-/** 서버의 {@code submission.OtherAnswer}. */
-export type OtherAnswer = {
-  name: string;
-  count: number;
-};
-
 /** 서버의 {@code submission.SubmissionResult}. */
 export type SubmissionResult = {
   answer: string;
@@ -130,6 +103,4 @@ export type SubmissionResult = {
   submittedWords: string[];
   matchedWords: string[];
   exact: boolean;
-  docstring: string | null;
-  others: OtherAnswer[];
 };
