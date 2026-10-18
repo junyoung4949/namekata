@@ -48,6 +48,11 @@ public class ChapterQuestion {
         this.position = position;
     }
 
+    /** 지울 때 쓸 키. 행을 통째로 읽어 오지 않고 바로 지우려는 것이다. */
+    public static Key keyOf(long chapterId, String questionId, Role role) {
+        return new Key(chapterId, questionId, role);
+    }
+
     public long chapterId() {
         return key.chapterId();
     }
