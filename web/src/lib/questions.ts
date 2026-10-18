@@ -41,11 +41,8 @@ export async function listAll(): Promise<ReviewRow[]> {
 }
 
 /** 답을 보고 넘어간다. 제출이 아니므로 저장하지 않는다. */
-export async function revealAnswer(
-  id: string,
-): Promise<{ answer: string; answerWords: string[] } | null> {
-  const result = await api<SubmissionResult>(`/questions/${encodeURIComponent(id)}/answer`);
-  return { answer: result.answer, answerWords: result.answerWords };
+export async function revealAnswer(id: string): Promise<SubmissionResult> {
+  return api<SubmissionResult>(`/questions/${encodeURIComponent(id)}/answer`);
 }
 
 export function countsByLanguage(questions: { language: Language }[]): Record<string, number> {

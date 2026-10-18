@@ -2,6 +2,21 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
+export type DeckPanel = {
+  /** 번호 줄의 툴팁과 아래쪽 현재 위치 표시에 쓴다. */
+  title: string;
+  /**
+   * 번호 줄에 찍을 글자.
+   *
+   * 판 순번을 그대로 쓰지 않는다. 연습 판이 장 사이에 끼어 있어서, 세 번째
+   * 판이 세 번째 장이 아닐 수 있다. 무엇을 찍을지는 페이지가 정한다.
+   */
+  label: string;
+  /** 연습 판은 번호 줄에서 다르게 칠한다 — 읽는 판과 푸는 판이 섞여 있다. */
+  kind: "chapter" | "practice";
+  node: React.ReactNode;
+};
+
 /**
  * 장을 가로로 넘겨 읽는 틀.
  *
@@ -13,19 +28,11 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * 거리가 세로보다 뚜렷이 클 때만 장을 넘긴다 — 읽다가 손가락이 틀어졌다고
  * 장이 넘어가면 읽을 수가 없다.
  */
-export function GuideDeck({
-  titles,
-  children,
-}: {
-  /** 장 제목. 번호 줄과 현재 위치 표시에 쓴다. */
-  titles: string[];
-  /** 장 본문. titles 와 같은 순서여야 한다. */
-  children: React.ReactNode[];
-}) {
+export function GuideDeck({ panels: items }: { panels: DeckPanel[] }) {
   const [at, setAt] = useState(0);
   const panels = useRef<(HTMLDivElement | null)[]>([]);
   const touch = useRef<{ x: number; y: number } | null>(null);
-  const count = titles.length;
+  const count = items.length;
 
   const go = useCallback(
     (next: number) => {
@@ -54,15 +61,16 @@ export function GuideDeck({
   return (
     <div className="deck">
       <nav className="deck-jump" aria-label="장 이동">
-        {titles.map((title, index) => (
+        {items.map((item, index) => (
           <button
             key={index}
             type="button"
-            title={title}
+            title={item.title}
+            data-kind={item.kind}
             aria-current={index === at}
             onClick={() => go(index)}
           >
-            {index + 1}
+            {item.label}
           </button>
         ))}
       </nav>
@@ -87,7 +95,7 @@ export function GuideDeck({
         }}
       >
         <div className="deck-track" style={{ transform: `translateX(-${at * 100}%)` }}>
-          {children.map((panel, index) => (
+          {items.map((item, index) => (
             <div
               key={index}
               className="deck-panel"
@@ -98,7 +106,7 @@ export function GuideDeck({
               inert={index !== at}
               aria-hidden={index !== at}
             >
-              {panel}
+              {item.node}
             </div>
           ))}
         </div>
@@ -106,7 +114,7 @@ export function GuideDeck({
       </div>
 
       <div className="deck-pager">
-        <span className="deck-label">{titles[at]}</span>
+        <span className="deck-label">{items[at].title}</span>
         <span className="deck-count mono">
           {at + 1} / {count}
         </span>

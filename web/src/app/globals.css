@@ -627,3 +627,238 @@ pre,
   color: var(--muted);
   font-weight: 500;
 }
+
+/* ───────────────────────────────────────────────────────────── 연습 칸
+ *
+ * 왼쪽이 "이 함수가 하는 일", 오른쪽이 코드와 답.
+ *
+ * 세로로 쌓으면 설명을 읽고 코드를 보려고 스크롤하고, 답을 쓰다가 설명을
+ * 다시 보려고 또 올라가야 한다. 나란히 두면 둘을 번갈아 볼 수 있다.
+ * 좁은 화면에서는 어쩔 수 없이 쌓는다.
+ */
+.practice-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.practice-tag {
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 3px;
+  background: var(--text);
+  color: var(--bg);
+}
+
+.practice-lang {
+  font-size: 11px;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 0.05rem 0.45rem;
+}
+
+.practice-from {
+  font-size: 11px;
+  color: var(--muted);
+  margin-left: auto;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.practice-cols {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 52rem) {
+  .practice-cols {
+    /* 코드 쪽을 조금 넓게. 긴 줄이 가로로 덜 밀린다. */
+    grid-template-columns: 1fr 1.15fr;
+    align-items: start;
+  }
+}
+
+.practice-brief {
+  background: var(--accent-soft);
+  border-radius: 0.5rem;
+  padding: 0.9rem 1rem;
+}
+
+.practice-brief-h {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+/* 상황 설명 안의 산문은 본문보다 한 단계 작게. */
+.practice-brief .prose-ko {
+  font-size: 14px;
+}
+
+.practice-work {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.practice-send {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.practice-send button {
+  padding: 0.45rem 1.1rem;
+  border: 1px solid var(--text);
+  border-radius: 0.35rem;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.practice-send button:hover:not(:disabled) {
+  opacity: 0.85;
+}
+
+.practice-send button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.practice-hint,
+.practice-error {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.practice-error {
+  color: var(--accent);
+}
+
+/* ── 결과 ─────────────────────────────────────────────────────── */
+.practice-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+}
+
+.practice-words {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+}
+
+.practice-words-k {
+  font-size: 11px;
+  color: var(--muted);
+  width: 2.5rem;
+  flex: none;
+}
+
+.practice-wordlist {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+.practice-word {
+  font-family: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 13px;
+  padding: 0.05rem 0.4rem;
+  border-radius: 3px;
+  background: var(--code-bg);
+  border: 1px solid var(--border);
+  color: var(--muted);
+}
+
+/* 겹친 단어만 표시한다. 맞고 틀림을 가리지 않는다. */
+.practice-word--hit {
+  background: var(--match-soft);
+  border-color: var(--match);
+  color: var(--match);
+  font-weight: 600;
+}
+
+.practice-tally {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.practice-tally b {
+  color: var(--text);
+}
+
+.practice-why {
+  margin-top: 0.4rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
+.practice-why-h {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--accent);
+  margin-bottom: 0.4rem;
+}
+
+.practice-why .prose-ko {
+  font-size: 14px;
+}
+
+.practice-refs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.practice-refs a {
+  font-size: 12px;
+  padding: 0.15rem 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--muted);
+  text-decoration: none;
+}
+
+.practice-refs a:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.practice-again {
+  align-self: flex-start;
+  font-size: 12px;
+  padding: 0.25rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 0.3rem;
+  background: none;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.practice-again:hover {
+  border-color: var(--accent);
+  color: var(--text);
+}
+
+/* 번호 줄에서 연습 판은 테두리만 주어 장과 구분한다. */
+.deck-jump button[data-kind="practice"] {
+  color: var(--accent);
+}
+
+.deck-jump button[data-kind="practice"][aria-current="true"] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--bg);
+}

@@ -42,9 +42,7 @@ export async function GET(request: Request) {
   }
 
   try {
-    const revealed = await revealAnswer(questionId);
-    if (!revealed) return NextResponse.json({ error: "unknown question" }, { status: 404 });
-    return NextResponse.json(revealed);
+    return NextResponse.json(await revealAnswer(questionId));
   } catch {
     return NextResponse.json({ error: "unknown question" }, { status: 404 });
   }

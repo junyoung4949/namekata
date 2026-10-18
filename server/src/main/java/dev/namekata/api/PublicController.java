@@ -1,5 +1,6 @@
 package dev.namekata.api;
 
+import dev.namekata.guide.PracticeNotes;
 import dev.namekata.question.Question;
 import dev.namekata.question.QuestionRepository;
 import dev.namekata.submission.SubmissionResult;
@@ -31,14 +32,17 @@ public class PublicController {
 
     private final QuestionRepository questions;
     private final SubmissionService submissions;
+    private final PracticeNotes notes;
     private final boolean allowPending;
 
     public PublicController(
             QuestionRepository questions,
             SubmissionService submissions,
+            PracticeNotes notes,
             @Value("${namekata.allow-pending:false}") boolean allowPending) {
         this.questions = questions;
         this.submissions = submissions;
+        this.notes = notes;
         this.allowPending = allowPending;
     }
 
@@ -64,14 +68,14 @@ public class PublicController {
     }
 
     @PostMapping("/submissions")
-    public SubmissionResult submit(@RequestBody SubmitRequest request) {
-        return submissions.submit(request.questionId(), request.name());
+    public PracticeResult submit(@RequestBody SubmitRequest request) {
+        return explain(request.questionId(), submissions.submit(request.questionId(), request.name()));
     }
 
-    /** 답을 보고 넘어간다. */
+    /** 답을 보고 넘어간다. 제출이 아니므로 저장하지 않는다. */
     @GetMapping("/questions/{id}/answer")
-    public SubmissionResult reveal(@PathVariable String id) {
-        return submissions.reveal(id);
+    public PracticeResult reveal(@PathVariable String id) {
+        return explain(id, submissions.reveal(id));
     }
 
     /**
@@ -95,6 +99,37 @@ public class PublicController {
             SourceView source) {}
 
     public record SubmitRequest(@NotBlank String questionId, @NotBlank String name) {}
+
+    /**
+     * 제출 직후 화면에 내려보내는 것 — 채점 결과에 해설을 얹었다.
+     *
+     * <p>해설은 제출한 뒤에만 내려간다. 답 단어를 그대로 설명하는 글이라 문제와
+     * 함께 보내면 답이 새기 때문이다. 반대로 상황 설명(brief)은 풀기 전부터
+     * 보여 주므로 가이드를 읽을 때 같이 간다.
+     *
+     * @param rationale 원저자가 어떤 원칙으로 이 이름을 지었는지. 안 썼으면 null
+     * @param references 해설이 가리키는 장
+     */
+    public record PracticeResult(
+            String answer,
+            List<String> answerWords,
+            List<String> submittedWords,
+            List<String> matchedWords,
+            boolean exact,
+            String rationale,
+            List<PracticeNotes.ChapterRef> references) {}
+
+    private PracticeResult explain(String questionId, SubmissionResult graded) {
+        PracticeNotes.Explanation explanation = notes.of(questionId);
+        return new PracticeResult(
+                graded.answer(),
+                graded.answerWords(),
+                graded.submittedWords(),
+                graded.matchedWords(),
+                graded.exact(),
+                explanation.rationale(),
+                explanation.references());
+    }
 
     private static PublicQuestion toPublic(Question question) {
         return new PublicQuestion(

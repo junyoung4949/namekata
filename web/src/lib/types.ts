@@ -96,11 +96,25 @@ export type ReviewRow = {
   source: QuestionSource;
 };
 
-/** 서버의 {@code submission.SubmissionResult}. */
+/** 해설이 가리키는 장. 서버의 {@code guide.PracticeNotes.ChapterRef}. */
+export type ChapterRef = {
+  guideSlug: string;
+  chapterSlug: string;
+  title: string;
+};
+
+/**
+ * 제출 직후 내려오는 것. 서버의 {@code api.PublicController.PracticeResult}.
+ *
+ * 해설(rationale)은 제출한 뒤에만 내려온다 — 답 단어를 그대로 설명하는 글이라
+ * 문제와 함께 보내면 답이 샌다. 반대로 상황 설명(brief)은 풀기 전부터 보인다.
+ */
 export type SubmissionResult = {
   answer: string;
   answerWords: string[];
   submittedWords: string[];
   matchedWords: string[];
   exact: boolean;
+  rationale: string | null;
+  references: ChapterRef[];
 };
