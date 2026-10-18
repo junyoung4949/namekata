@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { attach, detach, loadNote, saveNote, search } from "@/app/admin/actions";
 import { Prose } from "@/components/Prose";
 import type { Attached, ChapterRow, QuestionRow } from "@/lib/admin";
@@ -173,18 +173,34 @@ function NoteForm({
   questionId: string;
   answer: string;
 }) {
-  const [brief, setBrief] = useState<string | null>(null);
+  const [brief, setBrief] = useState("");
   const [rationale, setRationale] = useState("");
+  const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const [busy, start] = useTransition();
 
-  // 처음 펼칠 때 한 번만 읽어 온다.
-  if (brief === null) {
-    void loadNote(questionId).then((note) => {
+  /*
+   * 열릴 때 한 번만 읽는다.
+   *
+   * 전에는 그리는 도중에 불렀다. 응답이 오기 전에 다시 그려지면 또 부르고,
+   * 바깥에서 상태가 하나 바뀔 때마다 그게 반복돼 요청이 폭주했다. 화면이
+   * 멈춘 것처럼 보이던 원인이다.
+   */
+  useEffect(() => {
+    let alive = true;
+    loadNote(questionId).then((note) => {
+      if (!alive) return;
       setBrief(note.brief ?? "");
       setRationale(note.rationale ?? "");
+      setLoaded(true);
     });
+    return () => {
+      alive = false;
+    };
+  }, [questionId]);
+
+  if (!loaded) {
     return <p className="px-3 pb-3 text-xs text-muted">불러오는 중…</p>;
   }
 

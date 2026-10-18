@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useDeferredValue, useState, useTransition } from "react";
 import { useFormStatus } from "react-dom";
 import { Prose } from "@/components/Prose";
 import { removeChapter, saveChapter, type ActionResult } from "@/app/admin/actions";
@@ -26,6 +26,14 @@ export function ChapterEditor({ guide, chapter }: { guide: string; chapter: Chap
   const [pending, start] = useTransition();
 
   const dirty = body !== saved;
+
+  /*
+   * 미리보기는 한 박자 늦게 따라온다.
+   *
+   * 마크다운을 다시 파싱하는 일이라 긴 장에서는 한 글자마다 하면 타이핑이
+   * 밀린다. 입력 칸은 즉시 반응하고, 그리는 쪽만 뒤처지게 둔다.
+   */
+  const shown = useDeferredValue(body);
 
   /**
    * 폼이 보낸 값을 그대로 쥐고 있다가, 성공하면 그 값을 기준선으로 옮긴다.
@@ -72,7 +80,11 @@ export function ChapterEditor({ guide, chapter }: { guide: string; chapter: Chap
           <div className="grid gap-1 min-w-0">
             <span className="text-xs text-muted">미리보기 (코드 색은 실제 화면에서 입혀집니다)</span>
             <div className="admin-preview">
-              {body.trim() ? <Prose>{body}</Prose> : <p className="text-muted text-sm">비어 있습니다.</p>}
+              {shown.trim() ? (
+                <Prose>{shown}</Prose>
+              ) : (
+                <p className="text-muted text-sm">비어 있습니다.</p>
+              )}
             </div>
           </div>
         </div>
