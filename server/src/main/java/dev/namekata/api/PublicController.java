@@ -7,7 +7,6 @@ import dev.namekata.submission.SubmissionResult;
 import dev.namekata.submission.SubmissionService;
 import jakarta.validation.constraints.NotBlank;
 import java.util.List;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -26,6 +25,10 @@ import org.springframework.web.server.ResponseStatusException;
  * 쓰였는데 둘 다 사라졌고, 주석 열기({@code /questions/{id}/comment})는 사람이 쓴
  * 상황 설명으로 대체됐으며, 다른 사람들의 답({@code /questions/{id}/answers})과
  * 신고({@code /reports})는 당분간 쓰지 않는다.
+ *
+ * <p>검수 상태로 거르지도 않는다. 문제를 고르는 일은 이제 가이드 저자가 장에
+ * 붙이면서 한다 — 그 선택이 곧 승인이라, 따로 승인 단계를 두면 같은 판단을 두 번
+ * 하게 된다. 내려간 문제(retired)만 빠진다.
  */
 @RestController
 public class PublicController {
@@ -33,24 +36,18 @@ public class PublicController {
     private final QuestionRepository questions;
     private final SubmissionService submissions;
     private final PracticeNotes notes;
-    private final boolean allowPending;
 
     public PublicController(
-            QuestionRepository questions,
-            SubmissionService submissions,
-            PracticeNotes notes,
-            @Value("${namekata.allow-pending:false}") boolean allowPending) {
+            QuestionRepository questions, SubmissionService submissions, PracticeNotes notes) {
         this.questions = questions;
         this.submissions = submissions;
         this.notes = notes;
-        this.allowPending = allowPending;
     }
 
     /** 풀 수 있는 문제 목록. 정답은 빠져 있다. */
     @GetMapping("/questions")
     public List<PublicQuestion> list(@RequestParam(required = false) String language) {
         return questions.findAllLive().stream()
-                .filter(question -> question.isPlayable(allowPending))
                 .filter(question -> language == null || question.language().code().equals(language))
                 .map(PublicController::toPublic)
                 .toList();
@@ -61,7 +58,6 @@ public class PublicController {
         Question question =
                 questions
                         .findLiveById(id)
-                        .filter(found -> found.isPlayable(allowPending))
                         .orElseThrow(
                                 () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "unknown question"));
         return toPublic(question);

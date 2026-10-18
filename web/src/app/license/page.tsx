@@ -1,10 +1,10 @@
 import Link from "next/link";
 import { requireAttribution } from "@/lib/attribution";
-import { listAll } from "@/lib/questions";
+import { listQuestions } from "@/lib/questions";
 
 export default async function LicensePage() {
   // 출처는 문제 데이터에서 모은다. 손으로 적은 목록이 아니라 실제로 쓰는 저장소다.
-  const questions = await listAll();
+  const questions = await listQuestions();
   const repos = new Map<
     string,
     { repo: string; repoUrl: string; license: string; copyright: string | null; count: number }

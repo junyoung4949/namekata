@@ -17,7 +17,6 @@ spring:
       ddl-auto: validate
 namekata:
   admin-token: ""
-  allow-pending: true
 logging:
   level:
     org.hibernate.SQL: WARN

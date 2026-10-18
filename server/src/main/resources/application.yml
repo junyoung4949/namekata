@@ -30,12 +30,6 @@ namekata:
   # 비어 있으면 로컬에서만 열린다 (운영 프로파일에서는 반드시 채운다).
   admin-token: ${NAMEKATA_ADMIN_TOKEN:}
 
-  # 검수 전(pending) 문제까지 내보낼지.
-  #
-  # 추출 직후에는 모든 문제가 pending 이라, 끄면 화면이 비어 있다. 개발에서는
-  # 켜 두고 운영에서는 꺼서 승인된 문제만 내보낸다 (아래 prod 프로파일).
-  allow-pending: ${NAMEKATA_ALLOW_PENDING:true}
-
 logging:
   level:
     dev.namekata: DEBUG
@@ -49,9 +43,6 @@ spring:
     properties:
       hibernate:
         format_sql: false
-namekata:
-  # 운영에서는 승인된 문제만 내보낸다.
-  allow-pending: ${NAMEKATA_ALLOW_PENDING:false}
 logging:
   level:
     dev.namekata: INFO

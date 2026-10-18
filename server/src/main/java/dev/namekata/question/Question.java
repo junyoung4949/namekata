@@ -164,14 +164,6 @@ public class Question {
         return retiredAt != null;
     }
 
-    /** 사용자에게 내보낼 문제인지. */
-    public boolean isPlayable(boolean allowPending) {
-        if (isRetired()) {
-            return false;
-        }
-        return status == ReviewStatus.APPROVED || (allowPending && status == ReviewStatus.PENDING);
-    }
-
     // ===== 사람이 하는 변경 =====
 
     public void review(ReviewStatus next) {

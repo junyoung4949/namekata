@@ -13,7 +13,6 @@
 
 export type Language = "java" | "python" | "javascript";
 export type Kind = "method" | "variable" | "class";
-export type ReviewStatus = "pending" | "approved" | "rejected";
 
 /**
  * 출처. 서버의 {@code api.SourceView}.
@@ -69,30 +68,6 @@ export type PublicQuestion = {
    */
   reviewFlags: string[];
   answerLength: number;
-  source: QuestionSource;
-};
-
-/**
- * 검수 화면에 내려오는 문제. 서버의 {@code api.AdminController.ReviewRow}.
- *
- * 정답과 주석이 들어 있다 — 그게 검수할 대상이다. 반대로 풀이 화면에만
- * 있는 칸(answerLength)은 여기 없다.
- */
-export type ReviewRow = {
-  id: string;
-  language: Language;
-  kind: Kind;
-  answer: string;
-  answerWords: string[];
-  maskedCode: string;
-  placeholder: string;
-  owner: string | null;
-  docstring: string | null;
-  status: ReviewStatus;
-  level: number;
-  reviewFlags: string[];
-  /** 추출기가 더 이상 내보내지 않아 내려간 문제. 지워지지는 않는다. */
-  retired: boolean;
   source: QuestionSource;
 };
 
