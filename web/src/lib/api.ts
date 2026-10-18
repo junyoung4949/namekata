@@ -6,7 +6,8 @@
  *
  * 모든 호출은 Next 서버에서만 일어난다. 브라우저가 Spring 을 직접 부르지
  * 않는 이유는 관리자 토큰이 서버에만 있어야 하기 때문이다 — 토큰을
- * NEXT_PUBLIC_ 으로 내보내면 검수 API 가 누구에게나 열린다.
+ * NEXT_PUBLIC_ 으로 내보내면 가이드를 누구나 고칠 수 있게 된다. 편집
+ * 화면도 서버 액션을 거쳐 여기로 온다 (lib/admin.ts).
  */
 
 export function apiBase(): string | null {
@@ -25,15 +26,14 @@ export class ApiError extends Error {
 }
 
 type Options = {
-  method?: "GET" | "POST";
+  method?: "GET" | "POST" | "DELETE";
   body?: unknown;
-  /** 관리자 토큰을 같이 보낸다. 검수·import API 가 요구한다. */
+  /** 관리자 토큰을 같이 보낸다. 가이드 편집·import API 가 요구한다. */
   admin?: boolean;
   /**
    * 응답을 얼마나 오래 재사용할지(초). 기본은 재사용하지 않음.
    *
-   * 문제 본문은 import 할 때만 바뀌므로 짧게 캐시해도 되지만, 검수에서
-   * 승인한 결과가 바로 보여야 해서 기본값은 꺼 둔다.
+   * 가이드를 고치면 바로 보여야 해서 기본값은 꺼 둔다.
    */
   revalidate?: number;
 };

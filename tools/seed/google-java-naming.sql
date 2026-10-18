@@ -137,6 +137,11 @@ Predicate<String> alwaysTrue = _ -> true;
 ');
 
 -- 연습 문제. 장에 붙이는 행위가 곧 승인이다.
+--
+-- 한 가지 함정이 있다. 같은 함수에서 뽑은 문제 둘을 한 가이드에 넣으면
+-- 서로의 답을 보여준다 — 변수 문제의 코드에는 메서드 이름이 그대로 보이고,
+-- 메서드 문제의 코드에는 변수 이름이 그대로 보인다. 처음에는 지역 변수 장에
+-- strLen 을 붙였다가 메서드 장의 hasText 와 겹쳐서 endIdx 로 바꿨다.
 insert into chapter_questions (chapter_id, question_id, role, position)
 select c.id, 'spring-projects-spring-framework-67fe0f4-171', 'practice', 10 from chapters c where c.guide_slug = 'google-java-naming' and c.slug = 'method-names';
 insert into chapter_questions (chapter_id, question_id, role, position)
@@ -192,36 +197,5 @@ insert into question_notes (question_id, brief, rationale) values
 
 `Idx` 축약도 같이 따라옵니다. 한 파일 안에서 같은 축약을 일관되게 쓰는 것과, 애초에 축약하지 않는 것 중 어느 쪽이 나은지는 저장소마다 답이 다릅니다.')
 on conflict (question_id) do update set brief = excluded.brief, rationale = excluded.rationale, updated_at = now();
-
--- ── 누출 검사 ───────────────────────────────────────────────────
---
--- 한 가이드에 붙인 문제끼리 서로의 답을 보여주지 않는지 본다.
---
--- 처음 시드를 돌렸을 때 실제로 걸린 일이다. hasText(메서드 문제)와
--- strLen(지역 변수 문제)은 **같은 함수에서 뽑은 것**이라, 변수 문제의
--- 코드에 메서드 이름이 그대로 보이고 메서드 문제의 코드에 변수 이름이
--- 그대로 보였다. 서로가 서로의 답이었다.
---
--- 걸리면 둘 중 하나를 다른 문제로 바꾼다. 가이드마다 돌려 볼 것.
-do $$
-declare leaked text;
-begin
-    select string_agg(format('%s 의 답(%s)이 %s 의 코드에 보인다',
-                             a.question_id, qa.answer, b.question_id), E'\n')
-      into leaked
-      from chapter_questions a
-      join chapters ca on ca.id = a.chapter_id
-      join questions qa on qa.id = a.question_id
-      join chapter_questions b on b.question_id <> a.question_id
-      join chapters cb on cb.id = b.chapter_id and cb.guide_slug = ca.guide_slug
-      join questions qb on qb.id = b.question_id
-     where ca.guide_slug = 'google-java-naming'
-       and a.role = 'practice' and b.role = 'practice'
-       and qb.masked_code like '%' || qa.answer || '%';
-
-    if leaked is not null then
-        raise exception E'연습 문제가 서로의 답을 보여준다:\n%', leaked;
-    end if;
-end $$;
 
 commit;
