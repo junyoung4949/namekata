@@ -190,6 +190,21 @@ export async function attach(
   return OK;
 }
 
+export async function moveQuestion(
+  guide: string,
+  chapterId: number,
+  questionId: string,
+  offset: number,
+): Promise<ActionResult> {
+  try {
+    await admin.moveQuestion(chapterId, questionId, offset);
+  } catch (error) {
+    return { error: why(error) };
+  }
+  refresh(guide, chapterId);
+  return OK;
+}
+
 export async function detach(
   guide: string,
   chapterId: number,

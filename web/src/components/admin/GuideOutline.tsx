@@ -6,6 +6,7 @@ import {
   createChapter,
   detach,
   moveChapter,
+  moveQuestion,
   type ActionResult,
 } from "@/app/admin/actions";
 import { NewQuestionForm } from "./NewQuestionForm";
@@ -176,6 +177,51 @@ export function GuideOutline({ guide, chapters }: { guide: string; chapters: Cha
                 <span className="text-xs text-accent">설명 없음</span>
               )}
               <span className="ml-auto flex items-center gap-3">
+                <span className="flex gap-1">
+                  {/*
+                    장을 넘으면 그 장의 것이 된다. 평평한 목록에서 한 칸 위가
+                    장이면, 그 문제는 앞 장으로 넘어간다는 뜻이다.
+                  */}
+                  <button
+                    type="button"
+                    className="admin-icon"
+                    disabled={busy}
+                    onClick={() =>
+                      start(async () =>
+                        setFailed(
+                          (
+                            await moveQuestion(
+                              guide,
+                              item.chapter.id,
+                              item.question.questionId,
+                              -1,
+                            )
+                          ).error ?? null,
+                        ),
+                      )
+                    }
+                    aria-label="위로"
+                  >
+                    ↑
+                  </button>
+                  <button
+                    type="button"
+                    className="admin-icon"
+                    disabled={busy}
+                    onClick={() =>
+                      start(async () =>
+                        setFailed(
+                          (
+                            await moveQuestion(guide, item.chapter.id, item.question.questionId, 1)
+                          ).error ?? null,
+                        ),
+                      )
+                    }
+                    aria-label="아래로"
+                  >
+                    ↓
+                  </button>
+                </span>
                 <button
                   type="button"
                   className="admin-link"

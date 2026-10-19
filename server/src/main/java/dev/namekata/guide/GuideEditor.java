@@ -6,6 +6,8 @@ import dev.namekata.question.Kind;
 import dev.namekata.question.Language;
 import dev.namekata.question.Question;
 import dev.namekata.question.QuestionRepository;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -198,6 +200,99 @@ public class GuideEditor {
                         : 0;
         links.save(new ChapterQuestion(chapter.id(), questionId, role, position));
     }
+
+    /**
+     * 연습 문제를 목록에서 한 칸 올리거나 내린다.
+     *
+     * <p>가이드 화면은 장과 문제를 한 목록으로 보여 준다. 그래서 "한 칸" 은 장을
+     * 넘는 경우가 있고, <strong>장을 넘으면 그 장의 것이 된다.</strong>
+     *
+     * <pre>
+     *   1 장A              1 장A
+     *   2 장B      q2 ↓    2 장B
+     *   ✎ q1       ────▶   ✎ q1
+     *   ✎ q2               3 장C
+     *   3 장C              ✎ q2     ← 장C 의 첫 문제가 됐다
+     *   ✎ q3               ✎ q3
+     * </pre>
+     *
+     * <p>같은 장 안에서는 이웃과 자리를 바꾼다. 장 순서를 다루는 방식
+     * ({@link #moveChapter})과 같은 규칙이다 — 화면이 숫자를 계산하지 않는다.
+     */
+    @Transactional
+    public void moveQuestion(long chapterId, String questionId, int offset) {
+        Chapter owner = chapter(chapterId);
+        List<Chapter> ordered = chapters.findByGuide(owner.guideSlug());
+
+        // 장과 그 장의 연습 문제를 화면과 같은 순서로 늘어놓는다.
+        List<Slot> flat = new ArrayList<>();
+        for (Chapter each : ordered) {
+            flat.add(new Slot(each, null));
+            practiceOf(each).forEach(link -> flat.add(new Slot(each, link)));
+        }
+
+        int at = -1;
+        for (int i = 0; i < flat.size(); i++) {
+            Slot slot = flat.get(i);
+            if (slot.link() != null
+                    && slot.chapter().id() == chapterId
+                    && slot.link().questionId().equals(questionId)) {
+                at = i;
+                break;
+            }
+        }
+        int to = at + offset;
+        if (at < 0 || to < 0 || to >= flat.size()) {
+            return;
+        }
+
+        ChapterQuestion mine = flat.get(at).link();
+        Slot target = flat.get(to);
+
+        if (target.link() != null) {
+            // 같은 장 안의 이웃과 자리를 바꾼다.
+            int mineWas = mine.position();
+            mine.moveTo(target.link().position());
+            target.link().moveTo(mineWas);
+            links.saveAll(List.of(mine, target.link()));
+            return;
+        }
+
+        // 장을 넘는다. 내려가면 그 다음 장의 첫 문제가, 올라가면 앞 장의 마지막 문제가 된다.
+        Chapter moved = offset > 0 ? target.chapter() : before(ordered, target.chapter());
+        if (moved == null) {
+            return;
+        }
+        List<ChapterQuestion> there = practiceOf(moved);
+        int position =
+                offset > 0
+                        ? there.stream().mapToInt(ChapterQuestion::position).min().orElse(STEP) - STEP
+                        : there.stream().mapToInt(ChapterQuestion::position).max().orElse(0) + STEP;
+
+        links.delete(mine);
+        links.flush();
+        links.save(new ChapterQuestion(moved.id(), questionId, Role.PRACTICE, position));
+    }
+
+    /** 한 장의 연습 문제를 순서대로. */
+    private List<ChapterQuestion> practiceOf(Chapter chapter) {
+        return links.findByChapterIds(List.of(chapter.id())).stream()
+                .filter(link -> link.role() == Role.PRACTICE)
+                .sorted(Comparator.comparingInt(ChapterQuestion::position))
+                .toList();
+    }
+
+    private static Chapter before(List<Chapter> ordered, Chapter chapter) {
+        for (int i = 1; i < ordered.size(); i++) {
+            if (ordered.get(i).id().equals(chapter.id())) {
+                return ordered.get(i - 1);
+            }
+        }
+        return null;
+    }
+
+    /** 화면이 보는 한 줄. 문제가 없으면 장 자체를 가리킨다. */
+    private record Slot(Chapter chapter, ChapterQuestion link) {}
 
     @Transactional
     public void detach(long chapterId, String questionId, Role role) {

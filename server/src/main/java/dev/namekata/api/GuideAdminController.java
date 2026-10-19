@@ -264,6 +264,18 @@ public class GuideAdminController {
         editor.attach(id, request.questionId(), Role.of(request.role()));
     }
 
+    /** 연습 문제를 목록에서 한 칸 옮긴다. 장을 넘으면 그 장의 것이 된다. */
+    @PostMapping("/chapters/{id}/questions/{questionId}/move")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void moveQuestion(
+            @RequestHeader(name = TOKEN, required = false) String token,
+            @PathVariable long id,
+            @PathVariable String questionId,
+            @RequestBody MoveRequest request) {
+        guard.check(token);
+        editor.moveQuestion(id, questionId, request.offset());
+    }
+
     @DeleteMapping("/chapters/{id}/questions/{questionId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void detach(

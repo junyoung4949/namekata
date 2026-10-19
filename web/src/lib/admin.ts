@@ -178,6 +178,19 @@ export function attachQuestion(
   });
 }
 
+/** 연습 문제를 목록에서 한 칸 옮긴다. 장을 넘으면 그 장의 것이 된다. */
+export function moveQuestion(
+  chapterId: number,
+  questionId: string,
+  offset: number,
+): Promise<void> {
+  return api<void>(`/admin/chapters/${chapterId}/questions/${slug(questionId)}/move`, {
+    ...admin,
+    method: "POST",
+    body: { offset },
+  });
+}
+
 export function detachQuestion(
   chapterId: number,
   questionId: string,
