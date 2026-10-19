@@ -2,7 +2,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getGuide, listChapters } from "@/lib/admin";
 import { ChapterEditor } from "@/components/admin/ChapterEditor";
-import { ChapterQuestions } from "@/components/admin/ChapterQuestions";
 
 export const dynamic = "force-dynamic";
 
@@ -32,8 +31,12 @@ export default async function AdminChapterPage({
         </div>
       </header>
 
+      {/*
+        문제는 여기서 붙이지 않는다. 가이드 화면의 한 목록에서 장과 문제를
+        함께 쌓는다 — 글 쓰는 흐름이 "장 쓰고 → 문제 만들고 → 다음 장" 이라,
+        장 안으로 들어와야 문제를 붙일 수 있으면 그 흐름이 매번 끊긴다.
+      */}
       <ChapterEditor guide={slug} chapter={chapter} />
-      <ChapterQuestions guide={slug} chapter={chapter} />
     </div>
   );
 }

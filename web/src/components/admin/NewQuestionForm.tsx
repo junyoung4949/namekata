@@ -16,10 +16,13 @@ import { writeQuestion } from "@/app/admin/actions";
 export function NewQuestionForm({
   guide,
   chapterId,
+  chapterTitle,
   onDone,
 }: {
   guide: string;
   chapterId: number;
+  /** 새 문제가 어느 장 뒤에 붙는지. 목록 끝에 쌓이는 것이 쓰는 순서와 맞는다. */
+  chapterTitle: string;
   onDone: () => void;
 }) {
   const [language, setLanguage] = useState("java");
@@ -46,6 +49,9 @@ export function NewQuestionForm({
 
   return (
     <div className="space-y-3 rounded border border-border bg-bg p-3">
+      <p className="text-xs text-muted">
+        만든 문제는 <strong>{chapterTitle}</strong> 뒤에 붙습니다.
+      </p>
       <div className="flex flex-wrap gap-2">
         <select
           value={language}

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { getGuide, listChapters } from "@/lib/admin";
 import { GuideSettings } from "@/components/admin/GuideSettings";
-import { ChapterList } from "@/components/admin/ChapterList";
+import { GuideOutline } from "@/components/admin/GuideOutline";
 
 export const dynamic = "force-dynamic";
 
@@ -32,7 +32,7 @@ export default async function AdminGuidePage({
         </div>
       </header>
 
-      <ChapterList guide={guide.slug} chapters={chapters} />
+      <GuideOutline guide={guide.slug} chapters={chapters} />
       <GuideSettings guide={guide} />
     </div>
   );
