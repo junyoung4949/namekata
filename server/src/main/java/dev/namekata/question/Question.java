@@ -64,6 +64,16 @@ public class Question {
     @Column(nullable = false)
     private List<String> reviewFlags = List.of();
 
+    /**
+     * 어디서 왔는지. 출처 표기 의무가 여기서 갈린다.
+     *
+     * <p>추출기가 넣는 문제는 {@link Origin#EXTRACTED} 이고 출처가 반드시 있다
+     * (DB 제약으로 막는다). 사람이 가이드를 쓰다가 만든 문제는
+     * {@link Origin#AUTHORED} 이고 표기할 원문이 없다.
+     */
+    @Column(nullable = false)
+    private Origin origin = Origin.EXTRACTED;
+
     @Embedded
     private QuestionSource source;
 
@@ -86,6 +96,53 @@ public class Question {
 
     protected Question() {
         // JPA 용
+    }
+
+    /**
+     * 사람이 쓴 문제.
+     *
+     * <p>추출기 칸을 바꾸는 setter 가 없는 것과 같은 이유로, 이 생성자도 추출된
+     * 문제를 만드는 데는 쓸 수 없다. 그쪽은 {@link QuestionImporter} 가 SQL 로
+     * 한 번에 처리한다.
+     *
+     * <p>가린 코드는 바깥에서 만들어 넘긴다 — 답을 어떻게 가릴지는 네이밍 규칙에
+     * 달린 일이라 {@code naming} 패키지가 안다.
+     */
+    public static Question authored(
+            String id,
+            Language language,
+            Kind kind,
+            String answer,
+            String maskedCode,
+            String placeholder,
+            String owner,
+            String docstring) {
+        Question question = new Question();
+        question.id = id;
+        question.origin = Origin.AUTHORED;
+        question.language = language;
+        question.kind = kind;
+        question.answer = answer;
+        question.maskedCode = maskedCode;
+        question.placeholder = placeholder;
+        question.owner = (owner == null || owner.isBlank()) ? null : owner.trim();
+        question.docstring = (docstring == null || docstring.isBlank()) ? null : docstring.trim();
+        question.level = 0;
+        question.reviewFlags = List.of();
+        question.source = new QuestionSource(null, null, null, null, null, null, null);
+        question.status = ReviewStatus.APPROVED;
+        question.createdAt = Instant.now();
+        question.updatedAt = question.createdAt;
+        return question;
+    }
+
+    /** 가린 코드와 설명을 고친다. 자작 문제만 고칠 수 있다. */
+    public void rewrite(String answer, String maskedCode, String owner, String docstring) {
+        this.answer = answer;
+        this.maskedCode = maskedCode;
+        this.owner = (owner == null || owner.isBlank()) ? null : owner.trim();
+        this.docstring = (docstring == null || docstring.isBlank()) ? null : docstring.trim();
+        this.updatedAt = Instant.now();
     }
 
     public String id() {
@@ -142,6 +199,15 @@ public class Question {
         return source;
     }
 
+    public Origin origin() {
+        return origin;
+    }
+
+    /** 출처를 표기해야 하는 문제인지. */
+    public boolean needsAttribution() {
+        return origin == Origin.EXTRACTED;
+    }
+
     public ReviewStatus status() {
         return status;
     }
@@ -156,20 +222,12 @@ public class Question {
         if (copyrightHolderOverride != null && !copyrightHolderOverride.isBlank()) {
             return Optional.of(copyrightHolderOverride);
         }
-        return Optional.ofNullable(source.copyrightHolder());
+        return source == null ? Optional.empty() : Optional.ofNullable(source.copyrightHolder());
     }
 
     /** 추출 결과에서 사라진 문제인지. 제출 기록이 걸려 있어 지우지는 않는다. */
     public boolean isRetired() {
         return retiredAt != null;
-    }
-
-    /** 사용자에게 내보낼 문제인지. */
-    public boolean isPlayable(boolean allowPending) {
-        if (isRetired()) {
-            return false;
-        }
-        return status == ReviewStatus.APPROVED || (allowPending && status == ReviewStatus.PENDING);
     }
 
     // ===== 사람이 하는 변경 =====

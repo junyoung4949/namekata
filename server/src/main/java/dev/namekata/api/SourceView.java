@@ -16,14 +16,21 @@ public record SourceView(
         String repoUrl,
         String commitHash,
         String filePath,
-        int startLine,
-        int endLine,
+        Integer startLine,
+        Integer endLine,
         String url,
         String license,
         String copyrightHolder) {
 
+    /**
+     * @return 표기할 출처가 없으면 {@code null}. 사람이 쓴 문제(Origin.AUTHORED)가
+     *     그렇다 — 지어낸 예시 코드에는 표시할 원문이 없다
+     */
     public static SourceView of(Question question) {
         var source = question.source();
+        if (source == null || !source.isPresent()) {
+            return null;
+        }
         return new SourceView(
                 source.repo(),
                 source.repoUrl(),

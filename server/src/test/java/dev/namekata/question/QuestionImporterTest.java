@@ -29,8 +29,6 @@ class QuestionImporterTest {
 
     @BeforeEach
     void 비우고_시작한다() {
-        jdbc.update("delete from hidden_answers");
-        jdbc.update("delete from reports");
         jdbc.update("delete from submissions");
         jdbc.update("delete from questions");
     }

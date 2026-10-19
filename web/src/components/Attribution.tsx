@@ -1,6 +1,5 @@
 "use client";
 
-import { useTranslations } from "next-intl";
 import { requireAttribution } from "@/lib/attribution";
 import type { QuestionSource } from "@/lib/types";
 
@@ -18,10 +17,12 @@ export function Attribution({
   source: raw,
   onRevealAttempt,
 }: {
-  source: QuestionSource;
+  /** 사람이 쓴 문제에는 표기할 원문이 없다. 그때 null 이고 아무것도 그리지 않는다. */
+  source: QuestionSource | null;
   onRevealAttempt?: () => void;
 }) {
-  const t = useTranslations("play");
+  // 출처가 아예 없는 것(자작)과, 있어야 하는데 빠진 것(버그)은 다른 일이다.
+  if (!raw) return null;
   // 표기할 칸이 빠졌으면 코드를 보여 주지 않는다 (lib/attribution.ts 참고).
   const source = requireAttribution(raw);
 
@@ -43,15 +44,15 @@ export function Attribution({
       {source.license}
       {source.copyrightHolder ? ` · ${source.copyrightHolder}` : ""}
       {" · "}
-      {t("modified")}
+      문제 제작을 위해 식별자를 가려 수정함
       {" · "}
       <a
         href={source.url}
         target="_blank"
         rel="noreferrer noopener"
-        title={t("spoiler")}
+        title="원본을 열면 답이 보입니다"
         onClick={(event) => {
-          if (onRevealAttempt && !window.confirm(t("spoilerConfirm"))) {
+          if (onRevealAttempt && !window.confirm("답이 보입니다. 그래도 여시겠어요?")) {
             event.preventDefault();
             return;
           }
@@ -59,7 +60,7 @@ export function Attribution({
         }}
         className="underline underline-offset-4 hover:text-text"
       >
-        {t("viewOriginal")}
+        원본 보기
       </a>
     </aside>
   );

@@ -52,9 +52,6 @@ services:
       NAMEKATA_DB_USER: namekata
       NAMEKATA_DB_PASSWORD: ${DB_PASSWORD}
       NAMEKATA_ADMIN_TOKEN: ${ADMIN_TOKEN:?ADMIN_TOKEN 이 필요하다}
-      # 운영에서는 승인된 문제만 내보낸다. prod 프로파일의 기본값이지만
-      # 명시해 둔다 — 이 값이 뒤집히면 검수 전 문제가 공개된다.
-      NAMEKATA_ALLOW_PENDING: "false"
     healthcheck:
       test: ["CMD-SHELL", "curl -fsS http://localhost:8080/questions > /dev/null || exit 1"]
       interval: 15s
@@ -77,8 +74,6 @@ services:
       # 컨테이너 이름으로 부른다. 외부로 나가지 않는다.
       NAMEKATA_API_URL: http://server:8080
       NAMEKATA_ADMIN_TOKEN: ${ADMIN_TOKEN}
-      # 안내 문구만 정한다. 거르는 일은 서버가 한다 (lib/questions.ts 참고).
-      NAMEKATA_ALLOW_PENDING: "0"
       NEXT_PUBLIC_TAKEDOWN_CONTACT: ${TAKEDOWN_CONTACT:-about4949@gmail.com}
 
   caddy:

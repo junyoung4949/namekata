@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * 문제를 집어넣는 창구.
@@ -108,4 +110,32 @@ public class QuestionAdminController {
         }
         return report;
     }
+
+    /**
+     * 추출기가 저작권자를 못 찾았거나 잘못 읽었을 때 사람이 채운다.
+     *
+     * <p>추출기가 읽은 칸을 직접 고치지 않고 별도 칸에 쓴다. 그렇게 하지 않으면
+     * 다음 import 가 지워 버린다.
+     *
+     * <p>검수 화면이 사라지면서 여기로 옮겨 왔다. 승인·거부는 없앴지만 이건
+     * 검수가 아니라 라이선스 표기 의무를 지키는 수단이라 남긴다. 부를 화면은
+     * 없고, 잘못 표기된 것이 발견되면 손으로 부른다.
+     */
+    @PostMapping("/{id}/copyright")
+    @ResponseStatus(HttpStatus.OK)
+    public void overrideCopyright(
+            @RequestHeader(name = "x-admin-token", required = false) String token,
+            @PathVariable String id,
+            @RequestBody CopyrightRequest request) {
+        guard.check(token);
+        Question question =
+                questions
+                        .findById(id)
+                        .orElseThrow(
+                                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "unknown question"));
+        question.overrideCopyrightHolder(request.copyrightHolder());
+        questions.save(question);
+    }
+
+    public record CopyrightRequest(String copyrightHolder) {}
 }
