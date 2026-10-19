@@ -9,6 +9,8 @@ import dev.namekata.guide.GuideEditor;
 import dev.namekata.guide.GuideLanguage;
 import dev.namekata.guide.GuideSource;
 import dev.namekata.guide.QuestionNote;
+import dev.namekata.question.Kind;
+import dev.namekata.question.Language;
 import dev.namekata.question.Question;
 import dev.namekata.question.QuestionRepository;
 import jakarta.validation.Valid;
@@ -215,19 +217,41 @@ public class GuideAdminController {
                                         || needle.isEmpty()
                                         || found.answer().toLowerCase().contains(needle)
                                         || found.id().toLowerCase().contains(needle))
-                .map(
-                        found ->
-                                new QuestionRow(
-                                        found.id(),
-                                        found.language().code(),
-                                        found.kind().code(),
-                                        found.answer(),
-                                        found.owner(),
-                                        found.source().repo(),
-                                        found.docstring(),
-                                        found.maskedCode(),
-                                        editor.note(found.id()).map(QuestionNote::isReady).orElse(false)))
+                .map(this::toRow)
                 .toList();
+    }
+
+    /**
+     * 문제를 새로 만든다. 장을 쓰다가 그 자리에서.
+     *
+     * <p>코드를 가리는 일은 서버가 한다 — 화면이 하면 같은 규칙이 두 곳에 생기고,
+     * 가린 결과를 그대로 믿는 길이 열린다. 답이 코드에 없거나 가린 뒤에도 보이면
+     * 400 으로 돌려보낸다.
+     */
+    @PostMapping("/questions")
+    @ResponseStatus(HttpStatus.CREATED)
+    public QuestionRow write(
+            @RequestHeader(name = TOKEN, required = false) String token,
+            @RequestBody @Valid NewQuestion request) {
+        guard.check(token);
+        Question made =
+                editor.writeQuestion(
+                        request.chapterId(),
+                        Language.of(request.language()),
+                        Kind.of(request.kind()),
+                        request.answer(),
+                        request.code(),
+                        request.owner(),
+                        request.docstring());
+        return toRow(made);
+    }
+
+    @DeleteMapping("/questions/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteQuestion(
+            @RequestHeader(name = TOKEN, required = false) String token, @PathVariable String id) {
+        guard.check(token);
+        editor.deleteQuestion(id);
     }
 
     @PostMapping("/chapters/{id}/questions")
@@ -308,7 +332,21 @@ public class GuideAdminController {
             String repo,
             String docstring,
             String maskedCode,
+            String origin,
             boolean ready) {}
+
+    /**
+     * @param chapterId 만들면서 바로 붙일 장. 비우면 만들기만 한다
+     * @param code 가리기 전의 원본. 서버가 answer 를 찾아 가린다
+     */
+    public record NewQuestion(
+            Long chapterId,
+            @NotBlank String language,
+            @NotBlank String kind,
+            @NotBlank String answer,
+            @NotBlank String code,
+            String owner,
+            String docstring) {}
 
     public record NoteRow(String questionId, String brief, String rationale) {}
 
@@ -345,6 +383,21 @@ public class GuideAdminController {
                 source == null ? null : source.title(),
                 source == null ? null : source.url(),
                 source == null ? null : source.license());
+    }
+
+    private QuestionRow toRow(Question question) {
+        var source = question.source();
+        return new QuestionRow(
+                question.id(),
+                question.language().code(),
+                question.kind().code(),
+                question.answer(),
+                question.owner(),
+                source == null ? null : source.repo(),
+                question.docstring(),
+                question.maskedCode(),
+                question.origin().code(),
+                editor.note(question.id()).map(QuestionNote::isReady).orElse(false));
     }
 
     private static ChapterRow bare(Chapter chapter) {

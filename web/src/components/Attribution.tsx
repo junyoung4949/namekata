@@ -17,9 +17,12 @@ export function Attribution({
   source: raw,
   onRevealAttempt,
 }: {
-  source: QuestionSource;
+  /** 사람이 쓴 문제에는 표기할 원문이 없다. 그때 null 이고 아무것도 그리지 않는다. */
+  source: QuestionSource | null;
   onRevealAttempt?: () => void;
 }) {
+  // 출처가 아예 없는 것(자작)과, 있어야 하는데 빠진 것(버그)은 다른 일이다.
+  if (!raw) return null;
   // 표기할 칸이 빠졌으면 코드를 보여 주지 않는다 (lib/attribution.ts 참고).
   const source = requireAttribution(raw);
 

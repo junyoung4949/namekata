@@ -1,7 +1,13 @@
 package dev.namekata.guide;
 
 import dev.namekata.guide.ChapterQuestion.Role;
+import dev.namekata.naming.Masking;
+import dev.namekata.question.Kind;
+import dev.namekata.question.Language;
+import dev.namekata.question.Question;
+import dev.namekata.question.QuestionRepository;
 import java.util.List;
+import java.util.Locale;
 import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -28,16 +34,19 @@ public class GuideEditor {
     private final ChapterRepository chapters;
     private final ChapterQuestionRepository links;
     private final QuestionNoteRepository notes;
+    private final QuestionRepository questions;
 
     public GuideEditor(
             GuideRepository guides,
             ChapterRepository chapters,
             ChapterQuestionRepository links,
-            QuestionNoteRepository notes) {
+            QuestionNoteRepository notes,
+            QuestionRepository questions) {
         this.guides = guides;
         this.chapters = chapters;
         this.links = links;
         this.notes = notes;
+        this.questions = questions;
     }
 
     // ------------------------------------------------------------ 가이드
@@ -193,6 +202,95 @@ public class GuideEditor {
     @Transactional
     public void detach(long chapterId, String questionId, Role role) {
         links.deleteById(ChapterQuestion.keyOf(chapterId, questionId, role));
+    }
+
+    // ------------------------------------------------------------ 문제 만들기
+
+    /**
+     * 장을 쓰다가 그 자리에서 문제를 만든다.
+     *
+     * <p>113개 중에서 고르는 것만으로는 글 쓰는 흐름과 맞지 않는다 — 장을 쓰고,
+     * 거기 필요한 문제를 만들고, 다음 장을 쓰는 식이어야 한다.
+     *
+     * <p>코드를 가리는 일과 답이 샜는지 보는 일을 여기서 한다. 추출기가 tree-sitter
+     * 로 하던 것을 글자 단위로 하는데(Masking), 붙여넣은 코드는 잘린 조각이라 파싱이
+     * 안 되는 경우가 많기 때문이다. 가린 뒤 {@link Masking#leak} 이 한 번 더 본다.
+     *
+     * @param chapterId 만들면서 바로 붙일 장. null 이면 만들기만 한다
+     */
+    @Transactional
+    public Question writeQuestion(
+            Long chapterId,
+            Language language,
+            Kind kind,
+            String answer,
+            String code,
+            String owner,
+            String docstring) {
+        String name = answer == null ? "" : answer.trim();
+        if (name.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "답이 비어 있다");
+        }
+        if (code == null || code.isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "코드가 비어 있다");
+        }
+
+        String masked = Masking.hide(code, name);
+        if (masked.equals(code)) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST, "코드에서 '" + name + "' 을(를) 찾지 못했다");
+        }
+        Masking.leak(masked, name)
+                .ifPresent(
+                        found -> {
+                            throw new ResponseStatusException(
+                                    HttpStatus.BAD_REQUEST, "가린 뒤에도 답이 보인다: " + found);
+                        });
+
+        Question question =
+                questions.save(
+                        Question.authored(
+                                nextId(name), language, kind, name, masked, Masking.PLACEHOLDER, owner,
+                                docstring));
+
+        if (chapterId != null) {
+            attach(chapterId, question.id(), Role.PRACTICE);
+        }
+        return question;
+    }
+
+    /**
+     * 자작 문제의 id.
+     *
+     * <p>추출된 문제는 저장소-커밋-줄번호라 출처가 id 에 드러난다. 자작 문제에는
+     * 그럴 출처가 없으므로 답으로 짓는다. 같은 이름의 문제를 여러 개 만들 수
+     * 있어야 해서 겹치면 번호를 붙인다.
+     */
+    private String nextId(String answer) {
+        String base =
+                "authored-"
+                        + answer.toLowerCase(Locale.ROOT)
+                                .replaceAll("[^a-z0-9]+", "-")
+                                .replaceAll("^-|-$", "");
+        String id = base;
+        for (int n = 2; questions.existsById(id); n++) {
+            id = base + "-" + n;
+        }
+        return id;
+    }
+
+    /** 자작 문제만 지운다. 추출된 문제는 import 가 주인이다. */
+    @Transactional
+    public void deleteQuestion(String questionId) {
+        Question question =
+                questions
+                        .findById(questionId)
+                        .orElseThrow(
+                                () -> new ResponseStatusException(HttpStatus.NOT_FOUND, "unknown question"));
+        if (question.needsAttribution()) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "추출된 문제는 여기서 지우지 않는다");
+        }
+        questions.delete(question);
     }
 
     // ------------------------------------------------------------ 문제에 붙는 글

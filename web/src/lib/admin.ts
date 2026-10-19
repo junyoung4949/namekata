@@ -55,6 +55,8 @@ export type QuestionRow = {
   repo: string;
   docstring: string | null;
   maskedCode: string;
+  /** extracted: 추출기가 가져온 것 · authored: 사람이 쓴 것 */
+  origin: "extracted" | "authored";
   ready: boolean;
 };
 
@@ -185,6 +187,26 @@ export function detachQuestion(
     `/admin/chapters/${chapterId}/questions/${slug(questionId)}?role=${role}`,
     { ...admin, method: "DELETE" },
   );
+}
+
+/**
+ * 문제를 새로 만든다. 가리는 일은 서버가 한다 — 화면이 하면 같은 규칙이 두
+ * 곳에 생기고, 가린 결과를 그대로 믿는 길이 열린다.
+ */
+export function writeQuestion(body: {
+  chapterId: number | null;
+  language: string;
+  kind: string;
+  answer: string;
+  code: string;
+  owner: string | null;
+  docstring: string | null;
+}): Promise<QuestionRow> {
+  return api<QuestionRow>("/admin/questions", { ...admin, method: "POST", body });
+}
+
+export function deleteQuestion(questionId: string): Promise<void> {
+  return api<void>(`/admin/questions/${slug(questionId)}`, { ...admin, method: "DELETE" });
 }
 
 export function getNote(questionId: string): Promise<NoteRow> {

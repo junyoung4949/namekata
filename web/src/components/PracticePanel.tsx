@@ -70,9 +70,9 @@ export function PracticePanel({
       <div className="practice-head">
         <span className="practice-tag">연습</span>
         <span className="practice-lang">{LANGUAGE[question.language]}</span>
+        {/* 자작 문제에는 저장소가 없다. 그때는 감싸는 이름만 적는다. */}
         <span className="practice-from mono">
-          {question.source.repo}
-          {question.owner ? ` · ${question.owner}` : ""}
+          {[question.source?.repo, question.owner].filter(Boolean).join(" · ")}
         </span>
       </div>
 

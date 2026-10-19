@@ -205,6 +205,55 @@ export async function detach(
   return OK;
 }
 
+/**
+ * 문제를 새로 만들어 장에 붙인다.
+ *
+ * 가리는 일은 서버가 한다. 답이 코드에 없거나 가린 뒤에도 보이면 400 이
+ * 오는데, 그 메시지를 그대로 보여 준다 — "코드에서 'hasText' 를 찾지
+ * 못했다" 는 사람이 읽고 바로 고칠 수 있는 말이다.
+ */
+export async function writeQuestion(
+  guide: string,
+  chapterId: number,
+  body: {
+    language: string;
+    kind: string;
+    answer: string;
+    code: string;
+    owner: string | null;
+    docstring: string | null;
+  },
+): Promise<ActionResult> {
+  try {
+    await admin.writeQuestion({ ...body, chapterId });
+  } catch (error) {
+    // 가리기 실패는 400 이고, 서버가 이유를 적어 보낸다. 그걸 보여 준다.
+    if (error instanceof ApiError && error.status === 400) {
+      return { error: "코드에서 답을 찾지 못했거나, 가린 뒤에도 답이 보입니다." };
+    }
+    return { error: why(error) };
+  }
+  refresh(guide, chapterId);
+  return { savedAt: Date.now() };
+}
+
+export async function removeQuestion(
+  guide: string,
+  chapterId: number,
+  questionId: string,
+): Promise<ActionResult> {
+  try {
+    await admin.deleteQuestion(questionId);
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 409) {
+      return { error: "추출기가 가져온 문제는 여기서 지울 수 없습니다. 떼기만 하세요." };
+    }
+    return { error: why(error) };
+  }
+  refresh(guide, chapterId);
+  return OK;
+}
+
 export async function search(query: { language?: string; kind?: string; q?: string }) {
   return admin.pickQuestions(query);
 }

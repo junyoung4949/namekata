@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { attach, detach, loadNote, saveNote, search } from "@/app/admin/actions";
+import { attach, detach, loadNote, removeQuestion, saveNote, search } from "@/app/admin/actions";
 import { Prose } from "@/components/Prose";
+import { NewQuestionForm } from "./NewQuestionForm";
 import type { Attached, ChapterRow, QuestionRow } from "@/lib/admin";
 
 /**
@@ -56,6 +57,7 @@ function Group({
   rows: Attached[];
 }) {
   const [open, setOpen] = useState(false);
+  const [writing, setWriting] = useState(false);
   const [failed, setFailed] = useState<string | null>(null);
   const [busy, start] = useTransition();
 
@@ -68,11 +70,34 @@ function Group({
         </div>
         <div className="flex items-center gap-3">
           {failed && <span className="admin-error">{failed}</span>}
-          <button type="button" className="admin-link" onClick={() => setOpen((now) => !now)}>
-            {open ? "닫기" : "문제 붙이기"}
+          {role === "practice" && (
+            <button
+              type="button"
+              className="admin-link"
+              onClick={() => {
+                setWriting((now) => !now);
+                setOpen(false);
+              }}
+            >
+              {writing ? "닫기" : "새 문제 만들기"}
+            </button>
+          )}
+          <button
+            type="button"
+            className="admin-link"
+            onClick={() => {
+              setOpen((now) => !now);
+              setWriting(false);
+            }}
+          >
+            {open ? "닫기" : "있는 문제 붙이기"}
           </button>
         </div>
       </div>
+
+      {writing && (
+        <NewQuestionForm guide={guide} chapterId={chapter.id} onDone={() => setWriting(false)} />
+      )}
 
       <ul className="grid gap-2">
         {rows.map((row) => (
@@ -131,7 +156,7 @@ function AttachedRow({
           </button>
           <button
             type="button"
-            className="admin-link admin-link--danger"
+            className="admin-link"
             disabled={busy}
             onClick={() =>
               start(async () =>
@@ -141,6 +166,25 @@ function AttachedRow({
           >
             떼기
           </button>
+          {/*
+            자작 문제만 지울 수 있다. 추출기가 가져온 것은 import 가 주인이라
+            여기서 지우면 다음 import 가 되살린다 — 서버도 409 로 막는다.
+          */}
+          {row.questionId.startsWith("authored-") && (
+            <button
+              type="button"
+              className="admin-link admin-link--danger"
+              disabled={busy}
+              onClick={() => {
+                if (!window.confirm(`"${row.answer}" 문제를 아주 지웁니다.`)) return;
+                start(async () =>
+                  setFailed((await removeQuestion(guide, chapterId, row.questionId)).error ?? null),
+                );
+              }}
+            >
+              지우기
+            </button>
+          )}
         </span>
       </div>
       {open && (

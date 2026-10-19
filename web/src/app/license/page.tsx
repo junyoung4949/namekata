@@ -26,6 +26,8 @@ export default async function LicensePage() {
     { repo: string; repoUrl: string; license: string; copyright: string | null; count: number }
   >();
   for (const question of questions) {
+    // 사람이 쓴 문제에는 표기할 원문이 없다. 고지할 것이 없으므로 건너뛴다.
+    if (!question.source) continue;
     // 이 페이지가 바로 라이선스 고지다. 칸이 빠지면 조용히 넘어가지 않는다.
     const source = requireAttribution(question.source);
     const entry = repos.get(source.repo);

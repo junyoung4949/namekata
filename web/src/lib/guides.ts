@@ -37,7 +37,8 @@ export type PracticeQuestion = {
   /** 이 함수가 하는 일. 문제를 풀기 전부터 보여 준다. */
   brief: string | null;
   answerLength: number;
-  source: QuestionSource;
+  /** 사람이 쓴 문제에는 표기할 원문이 없다. 그때 null 이다. */
+  source: QuestionSource | null;
 };
 
 export type Chapter = {

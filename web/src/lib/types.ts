@@ -24,8 +24,8 @@ export type QuestionSource = {
   repoUrl: string;
   commitHash: string;
   filePath: string;
-  startLine: number;
-  endLine: number;
+  startLine: number | null;
+  endLine: number | null;
   url: string;
   license: string;
   /**
@@ -68,7 +68,8 @@ export type PublicQuestion = {
    */
   reviewFlags: string[];
   answerLength: number;
-  source: QuestionSource;
+  /** 사람이 쓴 문제에는 표기할 원문이 없다. 그때 null 이다. */
+  source: QuestionSource | null;
 };
 
 /** 해설이 가리키는 장. 서버의 {@code guide.PracticeNotes.ChapterRef}. */
