@@ -5,6 +5,10 @@
 -- 손으로 고친 것을 덮어쓴다.
 --
 --   psql -d namekata -f tools/seed/google-java-naming.sql
+--
+-- 문제를 id 로 가리키지 않고 (저장소, 답, 종류) 로 찾는다. id 에는 추출한
+-- 커밋이 박혀 있어서, 다른 때 추출한 DB 에서는 같은 문제라도 id 가 다르다 —
+-- 실제로 운영과 개발이 어긋나 있었다. 이름으로 찾으면 그 차이를 타지 않는다.
 
 begin;
 
@@ -143,59 +147,88 @@ Predicate<String> alwaysTrue = _ -> true;
 -- 메서드 문제의 코드에는 변수 이름이 그대로 보인다. 처음에는 지역 변수 장에
 -- strLen 을 붙였다가 메서드 장의 hasText 와 겹쳐서 endIdx 로 바꿨다.
 insert into chapter_questions (chapter_id, question_id, role, position)
-select c.id, 'spring-projects-spring-framework-67fe0f4-171', 'practice', 10 from chapters c where c.guide_slug = 'google-java-naming' and c.slug = 'method-names';
+select c.id, q.id, 'practice', 10
+  from chapters c, questions q
+ where c.guide_slug = 'google-java-naming' and c.slug = 'method-names'
+   and q.repo = 'spring-projects/spring-framework' and q.answer = 'hasText' and q.kind = 'method';
 insert into chapter_questions (chapter_id, question_id, role, position)
-select c.id, 'spring-projects-spring-framework-67fe0f4-266', 'practice', 20 from chapters c where c.guide_slug = 'google-java-naming' and c.slug = 'method-names';
+select c.id, q.id, 'practice', 20
+  from chapters c, questions q
+ where c.guide_slug = 'google-java-naming' and c.slug = 'method-names'
+   and q.repo = 'spring-projects/spring-framework' and q.answer = 'trimAllWhitespace' and q.kind = 'method';
 insert into chapter_questions (chapter_id, question_id, role, position)
-select c.id, 'google-guava-b0ab782-93', 'practice', 30 from chapters c where c.guide_slug = 'google-java-naming' and c.slug = 'method-names';
+select c.id, q.id, 'practice', 30
+  from chapters c, questions q
+ where c.guide_slug = 'google-java-naming' and c.slug = 'method-names'
+   and q.repo = 'google/guava' and q.answer = 'padStart' and q.kind = 'method';
 insert into chapter_questions (chapter_id, question_id, role, position)
-select c.id, 'spring-projects-spring-framework-67fe0f4-336v341', 'practice', 10 from chapters c where c.guide_slug = 'google-java-naming' and c.slug = 'local-variable-names';
+select c.id, q.id, 'practice', 10
+  from chapters c, questions q
+ where c.guide_slug = 'google-java-naming' and c.slug = 'local-variable-names'
+   and q.repo = 'spring-projects/spring-framework' and q.answer = 'beginIdx' and q.kind = 'variable';
 insert into chapter_questions (chapter_id, question_id, role, position)
-select c.id, 'spring-projects-spring-framework-67fe0f4-354v359', 'practice', 20 from chapters c where c.guide_slug = 'google-java-naming' and c.slug = 'local-variable-names';
+select c.id, q.id, 'practice', 20
+  from chapters c, questions q
+ where c.guide_slug = 'google-java-naming' and c.slug = 'local-variable-names'
+   and q.repo = 'spring-projects/spring-framework' and q.answer = 'endIdx' and q.kind = 'variable';
 
 -- 해설이 가리키는 장.
 insert into chapter_questions (chapter_id, question_id, role, position)
-select c.id, 'spring-projects-spring-framework-67fe0f4-171', 'reference', 0 from chapters c where c.guide_slug = 'google-java-naming' and c.slug = 'method-names';
+select c.id, q.id, 'reference', 0
+  from chapters c, questions q
+ where c.guide_slug = 'google-java-naming' and c.slug = 'method-names'
+   and q.repo = 'spring-projects/spring-framework' and q.answer = 'hasText' and q.kind = 'method';
 insert into chapter_questions (chapter_id, question_id, role, position)
-select c.id, 'google-guava-b0ab782-93', 'reference', 0 from chapters c where c.guide_slug = 'google-java-naming' and c.slug = 'camel-case';
+select c.id, q.id, 'reference', 0
+  from chapters c, questions q
+ where c.guide_slug = 'google-java-naming' and c.slug = 'camel-case'
+   and q.repo = 'google/guava' and q.answer = 'padStart' and q.kind = 'method';
 insert into chapter_questions (chapter_id, question_id, role, position)
-select c.id, 'spring-projects-spring-framework-67fe0f4-336v341', 'reference', 0 from chapters c where c.guide_slug = 'google-java-naming' and c.slug = 'local-variable-names';
+select c.id, q.id, 'reference', 0
+  from chapters c, questions q
+ where c.guide_slug = 'google-java-naming' and c.slug = 'local-variable-names'
+   and q.repo = 'spring-projects/spring-framework' and q.answer = 'beginIdx' and q.kind = 'variable';
 
 -- 문제에 붙는 사람의 글. 추출기가 questions 를 덮어써도 여기는 남는다.
-insert into question_notes (question_id, brief, rationale) values
-  ('spring-projects-spring-framework-67fe0f4-171', '`CharSequence` 하나를 받아 `true`/`false`를 돌려줍니다. **공백이 아닌 글자가 하나라도 있으면** `true`입니다.
+insert into question_notes (question_id, brief, rationale)
+select q.id, '`CharSequence` 하나를 받아 `true`/`false`를 돌려줍니다. **공백이 아닌 글자가 하나라도 있으면** `true`입니다.
 
 - `true`: `"a"`, `" a "`, `"  .  "`
 - `false`: `null`, `""`, `"   "`', '불리언을 돌려주는 판정이라 `has`로 시작합니다. 뒤에 오는 것은 "무엇이 있는가"이고, 여기서는 공백이 아닌 실제 글자 — 즉 `text`입니다.
 
-같은 클래스에 `hasLength`가 따로 있습니다. 그쪽은 길이만 보고, 이쪽은 내용까지 봅니다. 접두사를 공유하고 뒤 단어만 바꿔서 둘이 짝이라는 게 목록에서 바로 보입니다.')
+같은 클래스에 `hasLength`가 따로 있습니다. 그쪽은 길이만 보고, 이쪽은 내용까지 봅니다. 접두사를 공유하고 뒤 단어만 바꿔서 둘이 짝이라는 게 목록에서 바로 보입니다.'
+  from questions q where q.repo = 'spring-projects/spring-framework' and q.answer = 'hasText' and q.kind = 'method'
 on conflict (question_id) do update set brief = excluded.brief, rationale = excluded.rationale, updated_at = now();
-insert into question_notes (question_id, brief, rationale) values
-  ('spring-projects-spring-framework-67fe0f4-266', '`CharSequence`를 받아 **공백 문자를 전부 없앤** 결과를 돌려줍니다. 앞뒤뿐 아니라 **가운데 공백까지** 없앱니다.
+insert into question_notes (question_id, brief, rationale)
+select q.id, '`CharSequence`를 받아 **공백 문자를 전부 없앤** 결과를 돌려줍니다. 앞뒤뿐 아니라 **가운데 공백까지** 없앱니다.
 
 - `" a b c "` → `"abc"`
 - 비었거나 `null`이면 받은 것을 그대로 돌려줍니다', '공백을 쳐내는 동작은 영어권 코드에서 `trim`으로 굳어 있습니다. 다만 `trim`만 쓰면 보통 **앞뒤만** 잘라낸다는 뜻이라, 가운데까지 없앤다는 점을 `All`로 구별합니다. 대상은 `Whitespace`입니다.
 
-메서드 이름은 동사로 시작한다는 3장의 규칙이 그대로 보이는 예입니다.')
+메서드 이름은 동사로 시작한다는 3장의 규칙이 그대로 보이는 예입니다.'
+  from questions q where q.repo = 'spring-projects/spring-framework' and q.answer = 'trimAllWhitespace' and q.kind = 'method'
 on conflict (question_id) do update set brief = excluded.brief, rationale = excluded.rationale, updated_at = now();
-insert into question_notes (question_id, brief, rationale) values
-  ('google-guava-b0ab782-93', '문자열, 최소 길이, 채울 문자 하나를 받습니다. 문자열이 최소 길이보다 짧으면 **앞쪽에** 그 문자를 반복해 붙여 길이를 맞춥니다. 이미 길면 받은 문자열을 그대로 돌려줍니다.
+insert into question_notes (question_id, brief, rationale)
+select q.id, '문자열, 최소 길이, 채울 문자 하나를 받습니다. 문자열이 최소 길이보다 짧으면 **앞쪽에** 그 문자를 반복해 붙여 길이를 맞춥니다. 이미 길면 받은 문자열을 그대로 돌려줍니다.
 
 - `("7", 3, ''0'')` → `"007"`
 - `("2010", 3, ''0'')` → `"2010"`', '채워 넣는 동작은 `pad`입니다. 남는 건 "어디를 채우는가"인데, 앞쪽이면 `Start`, 뒤쪽이면 `End`입니다. 실제로 Guava에는 `padEnd`가 나란히 있습니다.
 
-짝을 이루는 메서드는 **앞 단어를 공유하고 뒤 단어만 바꾸면** 자동완성 목록에서 나란히 붙습니다. `padStart`/`padEnd`가 `startPad`/`endPad`보다 나은 이유입니다.')
+짝을 이루는 메서드는 **앞 단어를 공유하고 뒤 단어만 바꾸면** 자동완성 목록에서 나란히 붙습니다. `padStart`/`padEnd`가 `startPad`/`endPad`보다 나은 이유입니다.'
+  from questions q where q.repo = 'google/guava' and q.answer = 'padStart' and q.kind = 'method'
 on conflict (question_id) do update set brief = excluded.brief, rationale = excluded.rationale, updated_at = now();
-insert into question_notes (question_id, brief, rationale) values
-  ('spring-projects-spring-framework-67fe0f4-336v341', '`trimLeadingCharacter` 안의 **지역 변수**입니다. 0에서 시작해 앞쪽의 지정된 문자를 건너뛰며 하나씩 올라가고, 마지막에 `substring`의 **시작 위치**로 쓰입니다.', '잘라낼 지점을 가리키는 번호입니다. 앞에서부터 세므로 `begin`, 번호이므로 `index`입니다.
+insert into question_notes (question_id, brief, rationale)
+select q.id, '`trimLeadingCharacter` 안의 **지역 변수**입니다. 0에서 시작해 앞쪽의 지정된 문자를 건너뛰며 하나씩 올라가고, 마지막에 `substring`의 **시작 위치**로 쓰입니다.', '잘라낼 지점을 가리키는 번호입니다. 앞에서부터 세므로 `begin`, 번호이므로 `index`입니다.
 
-다만 원저자는 `index`를 `Idx`로 줄여 썼습니다. **구글 스타일은 단어 내부 글자를 지워 줄이는 것을 권하지 않습니다**(1장). 규칙대로라면 `beginIndex`입니다 — 규칙과 실제 코드가 어긋나는 자리입니다.')
+다만 원저자는 `index`를 `Idx`로 줄여 썼습니다. **구글 스타일은 단어 내부 글자를 지워 줄이는 것을 권하지 않습니다**(1장). 규칙대로라면 `beginIndex`입니다 — 규칙과 실제 코드가 어긋나는 자리입니다.'
+  from questions q where q.repo = 'spring-projects/spring-framework' and q.answer = 'beginIdx' and q.kind = 'variable'
 on conflict (question_id) do update set brief = excluded.brief, rationale = excluded.rationale, updated_at = now();
 
-insert into question_notes (question_id, brief, rationale) values
-  ('spring-projects-spring-framework-67fe0f4-354v359', '`trimTrailingCharacter` 안의 **지역 변수**입니다. 문자열 맨 끝에서 시작해 뒤쪽의 지정된 문자를 건너뛰며 하나씩 내려가고, 마지막에 `substring`의 **끝 위치**로 쓰입니다.', '앞 문제와 짝입니다. 한쪽은 앞에서부터, 한쪽은 뒤에서부터 센 번호이고, **`begin`/`end`가 서로를 가리키는 쌍**이라 둘을 나란히 두면 뜻이 분명해집니다.
+insert into question_notes (question_id, brief, rationale)
+select q.id, '`trimTrailingCharacter` 안의 **지역 변수**입니다. 문자열 맨 끝에서 시작해 뒤쪽의 지정된 문자를 건너뛰며 하나씩 내려가고, 마지막에 `substring`의 **끝 위치**로 쓰입니다.', '앞 문제와 짝입니다. 한쪽은 앞에서부터, 한쪽은 뒤에서부터 센 번호이고, **`begin`/`end`가 서로를 가리키는 쌍**이라 둘을 나란히 두면 뜻이 분명해집니다.
 
-`Idx` 축약도 같이 따라옵니다. 한 파일 안에서 같은 축약을 일관되게 쓰는 것과, 애초에 축약하지 않는 것 중 어느 쪽이 나은지는 저장소마다 답이 다릅니다.')
+`Idx` 축약도 같이 따라옵니다. 한 파일 안에서 같은 축약을 일관되게 쓰는 것과, 애초에 축약하지 않는 것 중 어느 쪽이 나은지는 저장소마다 답이 다릅니다.'
+  from questions q where q.repo = 'spring-projects/spring-framework' and q.answer = 'endIdx' and q.kind = 'variable'
 on conflict (question_id) do update set brief = excluded.brief, rationale = excluded.rationale, updated_at = now();
 
 commit;
