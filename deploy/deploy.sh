@@ -36,4 +36,4 @@ docker image prune -f > /dev/null
 echo
 echo "서버가 뜨는 데 1분쯤 걸린다. 확인:"
 echo "  docker compose logs -f server"
-echo "  curl -s localhost/ko | head -5"
+echo "  curl -s localhost/ | head -5"
